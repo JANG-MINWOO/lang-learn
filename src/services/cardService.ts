@@ -16,7 +16,7 @@ import { db } from '../config/firebase';
 import { COLLECTIONS, STUDY_CONFIG } from '../utils/constants';
 import type { Card } from '../types';
 import { isValidCard, hasRequiredCardFields } from '../types/guards';
-import { convertCardDocument, convertDocumentData } from '../types/firebase';
+import { convertDocumentData } from '../types/firebase';
 
 /**
  * 카드 생성

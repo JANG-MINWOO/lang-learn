@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import type { Deck, Card } from '../types';
 import Button from '../components/Button';
 import Modal from '../components/Modal';
@@ -18,7 +17,6 @@ import * as validators from '../utils/validators';
 export default function DeckDetail() {
   const { deckId } = useParams<{ deckId: string }>();
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
   const { showToast } = useToast();
   const { cards } = useCards(deckId);
   const [deck, setDeck] = useState<Deck | null>(null);

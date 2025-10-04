@@ -1,17 +1,26 @@
 import { FIREBASE_ERROR_MESSAGES, ERROR_MESSAGES } from './constants';
 
 /**
- * 커스텀 애플리케이션 에러 클래스
+ * 커스텀 애플리케이션 에러 인터페이스
  */
-export class AppError extends Error {
-  constructor(
-    message: string,
-    public code?: string,
-    public userMessage?: string
-  ) {
-    super(message);
-    this.name = 'AppError';
-  }
+export interface AppError extends Error {
+  code?: string;
+  userMessage?: string;
+}
+
+/**
+ * AppError 생성 함수
+ */
+export function createAppError(
+  message: string,
+  code?: string,
+  userMessage?: string
+): AppError {
+  const error = new Error(message) as AppError;
+  error.name = 'AppError';
+  error.code = code;
+  error.userMessage = userMessage;
+  return error;
 }
 
 /**
@@ -28,7 +37,7 @@ export function handleFirebaseError(error: any): string {
   }
 
   // AppError인 경우
-  if (error instanceof AppError && error.userMessage) {
+  if (error.name === 'AppError' && error.userMessage) {
     return error.userMessage;
   }
 

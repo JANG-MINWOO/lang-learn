@@ -1,4 +1,5 @@
-import { Difficulty, Card } from '../types';
+import { Difficulty } from '../types';
+import type { Card } from '../types';
 import { STUDY_CONFIG } from '../utils/constants';
 
 interface SpacedRepetitionResult {

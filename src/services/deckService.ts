@@ -14,7 +14,7 @@ import { db } from '../config/firebase';
 import { COLLECTIONS } from '../utils/constants';
 import type { Deck } from '../types';
 import { isValidDeck, hasRequiredDeckFields } from '../types/guards';
-import { convertDeckDocument, convertDocumentData } from '../types/firebase';
+import { convertDocumentData } from '../types/firebase';
 
 /**
  * 덱 조회

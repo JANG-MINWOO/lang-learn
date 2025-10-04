@@ -33,12 +33,14 @@ export interface Card {
 }
 
 // 학습 난이도
-export enum Difficulty {
-  AGAIN = 'again',
-  HARD = 'hard',
-  GOOD = 'good',
-  EASY = 'easy',
-}
+export const Difficulty = {
+  AGAIN: 'again',
+  HARD: 'hard',
+  GOOD: 'good',
+  EASY: 'easy',
+} as const;
+
+export type Difficulty = typeof Difficulty[keyof typeof Difficulty];
 
 // 학습 세션 (선택적)
 export interface StudySession {
