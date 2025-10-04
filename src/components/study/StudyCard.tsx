@@ -26,14 +26,14 @@ export default function StudyCard({
 }: StudyCardProps) {
   return (
     <div
-      className="bg-white border-4 border-black rounded-2xl p-12 min-h-[400px] flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
+      className="bg-gradient-to-br from-white via-gray-50 to-white border-4 border-black rounded-2xl p-12 min-h-[400px] flex flex-col items-center justify-center cursor-pointer hover:shadow-2xl hover:border-gray-800 transition-all duration-300 shadow-lg"
       onClick={onFlip}
     >
       <div className="text-center">
         <p className="text-sm text-gray-500 mb-4">
           {isReversed ? '뜻' : '단어/문장'}
         </p>
-        <p className="text-4xl font-bold text-black mb-8">{frontText}</p>
+        <p className="text-4xl font-bold bg-gradient-to-br from-black to-gray-700 bg-clip-text text-transparent mb-8">{frontText}</p>
 
         {isFlipped ? (
           <>
@@ -44,7 +44,7 @@ export default function StudyCard({
             <p className="text-2xl text-gray-700 mb-4">{backText}</p>
 
             {memo && (
-              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+              <div className="mt-6 p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg shadow-sm">
                 <p className="text-xs text-gray-500 mb-1">메모</p>
                 <p className="text-sm text-gray-600">{memo}</p>
               </div>

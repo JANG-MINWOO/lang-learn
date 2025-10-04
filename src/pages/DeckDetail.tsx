@@ -166,7 +166,7 @@ export default function DeckDetail() {
           </div>
 
           <div className="mt-4 sm:mt-6 flex gap-3 sm:gap-4">
-            <div className="bg-gray-50 border border-gray-200 rounded-lg px-3 sm:px-4 py-1.5 sm:py-2">
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 shadow-sm">
               <span className="text-gray-600 text-xs sm:text-sm">카드: </span>
               <span className="font-bold text-black text-sm sm:text-base">{cards.length}</span>
             </div>
@@ -188,7 +188,7 @@ export default function DeckDetail() {
             {cards.map((card) => (
               <div
                 key={card.id}
-                className="bg-white border-2 border-gray-200 rounded-xl p-4 sm:p-6 hover:border-black transition-colors"
+                className="bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 rounded-xl p-4 sm:p-6 hover:border-black hover:shadow-lg transition-all duration-200 shadow-sm"
               >
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
                   <div>

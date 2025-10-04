@@ -22,14 +22,14 @@ const DeckCard = memo(function DeckCard({
   return (
     <div
       onClick={onClick}
-      className="bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-black hover:shadow-lg transition-all duration-200 cursor-pointer group"
+      className="bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 rounded-xl p-6 hover:border-black hover:shadow-xl hover:from-gray-50 hover:to-white transition-all duration-200 cursor-pointer group shadow-md"
     >
       <div className="flex items-start justify-between mb-3">
         <h3 className="text-xl font-bold text-black group-hover:text-gray-700">
           {name}
         </h3>
         {dueCount > 0 && (
-          <span className="bg-black text-white text-xs font-bold px-2 py-1 rounded-full">
+          <span className="bg-gradient-to-b from-gray-900 to-black text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm">
             {dueCount}
           </span>
         )}

@@ -119,23 +119,23 @@ export default function Study() {
         <div className="max-w-md w-full text-center">
           <h1 className="text-2xl sm:text-3xl font-bold text-black mb-4 sm:mb-6">학습 완료!</h1>
 
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 sm:p-6 mb-4 sm:mb-6">
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-4 sm:p-6 mb-4 sm:mb-6 shadow-md">
             <p className="text-gray-600 text-sm sm:text-base mb-3 sm:mb-4">총 {cards.length}개의 카드를 학습했습니다</p>
 
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
-              <div className="bg-white border border-gray-200 rounded-lg p-2 sm:p-3">
+              <div className="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-lg p-2 sm:p-3 shadow-sm">
                 <p className="text-[10px] sm:text-xs text-gray-500">다시 학습</p>
                 <p className="text-xl sm:text-2xl font-bold text-red-600">{stats.again}</p>
               </div>
-              <div className="bg-white border border-gray-200 rounded-lg p-2 sm:p-3">
+              <div className="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-lg p-2 sm:p-3 shadow-sm">
                 <p className="text-[10px] sm:text-xs text-gray-500">어려움</p>
                 <p className="text-xl sm:text-2xl font-bold text-orange-600">{stats.hard}</p>
               </div>
-              <div className="bg-white border border-gray-200 rounded-lg p-2 sm:p-3">
+              <div className="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-lg p-2 sm:p-3 shadow-sm">
                 <p className="text-[10px] sm:text-xs text-gray-500">쉬움</p>
                 <p className="text-xl sm:text-2xl font-bold text-blue-600">{stats.good}</p>
               </div>
-              <div className="bg-white border border-gray-200 rounded-lg p-2 sm:p-3">
+              <div className="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-lg p-2 sm:p-3 shadow-sm">
                 <p className="text-[10px] sm:text-xs text-gray-500">암기 완료</p>
                 <p className="text-xl sm:text-2xl font-bold text-green-600">{stats.easy}</p>
               </div>

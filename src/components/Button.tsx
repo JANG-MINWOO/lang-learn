@@ -17,13 +17,13 @@ export default function Button({
   children,
   ...props
 }: ButtonProps) {
-  const baseStyles = 'font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed';
+  const baseStyles = 'font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md active:shadow-sm';
 
   const variants = {
-    primary: 'bg-black text-white hover:bg-gray-800 active:bg-gray-900',
-    secondary: 'bg-gray-200 text-black hover:bg-gray-300 active:bg-gray-400',
-    outline: 'border-2 border-black text-black hover:bg-black hover:text-white',
-    ghost: 'text-black hover:bg-gray-100 active:bg-gray-200',
+    primary: 'bg-gradient-to-b from-gray-900 to-black text-white hover:from-gray-800 hover:to-gray-900 active:from-black active:to-black',
+    secondary: 'bg-gradient-to-b from-gray-100 to-gray-200 text-black hover:from-gray-200 hover:to-gray-300 active:from-gray-300 active:to-gray-400',
+    outline: 'border-2 border-black text-black hover:bg-gradient-to-b hover:from-gray-900 hover:to-black hover:text-white',
+    ghost: 'text-black hover:bg-gradient-to-b hover:from-gray-50 hover:to-gray-100 active:from-gray-100 active:to-gray-200',
   };
 
   const sizes = {
