@@ -1577,47 +1577,54 @@ export const config = {
 
 ### 🎯 Phase 2: Custom Hooks & 재사용성 개선
 
-#### Task 2.1: 데이터 훅 생성 (1-2시간)
-- [ ] `src/hooks/useDecks.ts` 생성
-  - [ ] `useDecks(userId)` - 덱 목록 + 로딩 상태
-  - [ ] deckService 활용
+#### Task 2.1: 데이터 훅 생성 (1-2시간) ✅
+- [x] `src/hooks/useDecks.ts` 생성
+  - [x] `useDecks(userId)` - 덱 목록 + 로딩 상태 + 에러 상태
+  - [x] deckService 활용 (subscribeToDecksByUser)
+  - [x] JSDoc 문서화 추가
 
-- [ ] `src/hooks/useCards.ts` 생성
-  - [ ] `useCards(deckId)` - 카드 목록 + 로딩 상태
-  - [ ] cardService 활용
+- [x] `src/hooks/useCards.ts` 생성
+  - [x] `useCards(deckId)` - 카드 목록 + 로딩 상태 + 에러 상태
+  - [x] cardService 활용 (subscribeToCardsByDeck)
+  - [x] JSDoc 문서화 추가
 
-- [ ] `Home.tsx`에서 훅 적용 (20줄 → 2줄)
-- [ ] `DeckDetail.tsx`에서 훅 적용
+- [x] `Home.tsx`에서 훅 적용 (덱 구독 로직 10줄 → 1줄로 단축)
+- [x] `DeckDetail.tsx`에서 훅 적용 (카드 구독 로직 7줄 → 1줄로 단축)
 
-#### Task 2.2: 폼 훅 생성 (1시간)
-- [ ] `src/hooks/useForm.ts` 생성
-  - [ ] `values`, `errors`, `touched` 상태 관리
-  - [ ] `handleChange(field)` 핸들러
-  - [ ] `handleBlur(field)` 핸들러
-  - [ ] `validate()` - 전체 폼 검증
-  - [ ] `validateField(field)` - 필드별 검증
-  - [ ] `reset()` - 초기화
+#### Task 2.2: 폼 훅 생성 (1시간) ✅
+- [x] `src/hooks/useForm.ts` 생성
+  - [x] `values`, `errors`, `touched` 상태 관리
+  - [x] `handleChange(field)` 핸들러
+  - [x] `handleBlur(field)` 핸들러
+  - [x] `validate()` - 전체 폼 검증
+  - [x] `validateField(field)` - 필드별 검증
+  - [x] `reset()` - 초기화
+  - [x] `setFieldError()`, `setFieldValue()` 유틸리티 추가
+  - [x] JSDoc 문서화
 
-- [ ] `Login.tsx`에서 useForm 적용
-- [ ] `SignUp.tsx`에서 useForm 적용
-- [ ] `Home.tsx` (덱 생성 모달)에서 useForm 적용
-- [ ] `DeckDetail.tsx` (카드 추가)에서 useForm 적용
+- [x] `Login.tsx`에서 useForm 적용 (검증 로직 13줄 → 4줄로 단축)
+- [x] `SignUp.tsx`에서 useForm 적용 (검증 로직 29줄 → 15줄로 단축)
+- [x] `Home.tsx` (덱 생성 모달)에서 useForm 적용 (폼 상태 관리 간소화)
+- [x] `DeckDetail.tsx` (카드 추가)에서 useForm 적용 (폼 상태 관리 간소화)
 
-#### Task 2.3: 학습 알고리즘 훅 생성 (30분)
-- [ ] `src/hooks/useSpacedRepetition.ts` 생성
-  - [ ] `calculateNextReview(card, difficulty)` 함수
-  - [ ] STUDY_CONFIG 상수 활용
-  - [ ] SuperMemo SM-2 알고리즘 로직 이동
+#### Task 2.3: 학습 알고리즘 훅 생성 (30분) ✅
+- [x] `src/hooks/useSpacedRepetition.ts` 생성
+  - [x] `calculateNextReview(card, difficulty)` 함수
+  - [x] STUDY_CONFIG 상수 활용
+  - [x] SuperMemo SM-2 알고리즘 로직 이동
+  - [x] JSDoc 문서화 및 타입 정의
 
-- [ ] `Study.tsx`에서 훅 적용 (알고리즘 로직 제거)
+- [x] `Study.tsx`에서 훅 적용 (알고리즘 로직 40줄 제거, 재사용 가능한 훅으로 분리)
 
-#### Task 2.4: 키보드 단축키 훅 생성 (30분)
-- [ ] `src/hooks/useKeyboardShortcuts.ts` 생성
-  - [ ] 단축키 맵 + 핸들러 받기
-  - [ ] enabled 플래그로 활성화/비활성화
-  - [ ] 이벤트 리스너 자동 등록/해제
+#### Task 2.4: 키보드 단축키 훅 생성 (30분) ✅
+- [x] `src/hooks/useKeyboardShortcuts.ts` 생성
+  - [x] 단축키 맵 + 핸들러 받기
+  - [x] enabled 플래그로 활성화/비활성화
+  - [x] 이벤트 리스너 자동 등록/해제
+  - [x] Space 키 특수 처리 (key, code 모두 지원)
+  - [x] JSDoc 문서화
 
-- [ ] `Study.tsx`에서 훅 적용 (키보드 이벤트 로직 제거)
+- [x] `Study.tsx`에서 훅 적용 (키보드 이벤트 로직 25줄 → 8줄로 단축)
 
 ---
 

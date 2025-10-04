@@ -7,11 +7,14 @@ import { STUDY_CONFIG, KEYBOARD_SHORTCUTS } from '../utils/constants';
 import { getStudyCards, updateCard } from '../services/cardService';
 import { useToast } from '../contexts/ToastContext';
 import { processError } from '../utils/errorHandler';
+import { useSpacedRepetition } from '../hooks/useSpacedRepetition';
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 
 export default function Study() {
   const { deckId } = useParams<{ deckId: string }>();
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { calculateNextReview } = useSpacedRepetition();
   const [cards, setCards] = useState<Card[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -43,75 +46,6 @@ export default function Study() {
 
     fetchCards();
   }, [deckId]);
-
-  // 키보드 단축키
-  useEffect(() => {
-    if (isComplete) return;
-
-    const handleKeyPress = (e: KeyboardEvent) => {
-      // 스페이스바로 카드 플립
-      if (e.key === KEYBOARD_SHORTCUTS.FLIP_CARD || e.code === 'Space') {
-        e.preventDefault();
-        if (!isFlipped) {
-          setIsFlipped(true);
-        }
-        return;
-      }
-
-      // 답변 선택 (카드가 플립된 상태에서만)
-      if (!isFlipped) return;
-
-      if (e.key === KEYBOARD_SHORTCUTS.AGAIN) handleAnswer(Difficulty.AGAIN);
-      else if (e.key === KEYBOARD_SHORTCUTS.HARD) handleAnswer(Difficulty.HARD);
-      else if (e.key === KEYBOARD_SHORTCUTS.GOOD) handleAnswer(Difficulty.GOOD);
-      else if (e.key === KEYBOARD_SHORTCUTS.EASY) handleAnswer(Difficulty.EASY);
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [isFlipped, isComplete, currentIndex]);
-
-  // 간격 반복 알고리즘
-  const calculateNextReview = (card: Card, difficulty: Difficulty) => {
-    let newInterval = card.interval;
-    let newEaseFactor = card.easeFactor;
-
-    const config = STUDY_CONFIG.DIFFICULTY_ADJUSTMENTS[difficulty];
-    const minInterval = STUDY_CONFIG.MIN_INTERVALS[difficulty];
-
-    switch (difficulty) {
-      case Difficulty.AGAIN:
-        newInterval = minInterval;
-        newEaseFactor = Math.max(
-          STUDY_CONFIG.MIN_EASE_FACTOR,
-          card.easeFactor + config.easeChange
-        );
-        break;
-      case Difficulty.HARD:
-        newInterval = Math.max(minInterval, card.interval * config.intervalMultiplier);
-        newEaseFactor = Math.max(
-          STUDY_CONFIG.MIN_EASE_FACTOR,
-          card.easeFactor + config.easeChange
-        );
-        break;
-      case Difficulty.GOOD:
-        newInterval = Math.max(minInterval, card.interval * config.intervalMultiplier);
-        break;
-      case Difficulty.EASY:
-        newInterval = Math.max(minInterval, card.interval * config.intervalMultiplier);
-        newEaseFactor = card.easeFactor + config.easeChange;
-        break;
-    }
-
-    const nextReviewDate = new Date();
-    nextReviewDate.setDate(nextReviewDate.getDate() + Math.ceil(newInterval));
-
-    return {
-      interval: newInterval,
-      easeFactor: newEaseFactor,
-      nextReviewDate,
-    };
-  };
 
   const handleAnswer = async (difficulty: Difficulty) => {
     const currentCard = cards[currentIndex];
@@ -147,6 +81,18 @@ export default function Study() {
       setCurrentIndex(currentIndex + 1);
     }
   };
+
+  // 키보드 단축키
+  useKeyboardShortcuts(
+    {
+      [KEYBOARD_SHORTCUTS.FLIP_CARD]: () => !isFlipped && setIsFlipped(true),
+      [KEYBOARD_SHORTCUTS.AGAIN]: () => isFlipped && handleAnswer(Difficulty.AGAIN),
+      [KEYBOARD_SHORTCUTS.HARD]: () => isFlipped && handleAnswer(Difficulty.HARD),
+      [KEYBOARD_SHORTCUTS.GOOD]: () => isFlipped && handleAnswer(Difficulty.GOOD),
+      [KEYBOARD_SHORTCUTS.EASY]: () => isFlipped && handleAnswer(Difficulty.EASY),
+    },
+    !isComplete
+  );
 
   if (loading) {
     return (

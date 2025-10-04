@@ -3,33 +3,33 @@ import { signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../config/firebase';
 import { useAuth } from '../contexts/AuthContext';
-import type { Deck, Card } from '../types';
+import type { Card } from '../types';
 import Button from '../components/Button';
 import DeckCard from '../components/deck/DeckCard';
 import Modal from '../components/Modal';
 import Input from '../components/Input';
-import { createDeck, subscribeToDecksByUser } from '../services/deckService';
+import { createDeck } from '../services/deckService';
 import { subscribeToCardsByDecks } from '../services/cardService';
 import { useToast } from '../contexts/ToastContext';
 import { processError } from '../utils/errorHandler';
+import { useDecks } from '../hooks/useDecks';
+import { useForm } from '../hooks/useForm';
 
 export default function Home() {
   const navigate = useNavigate();
   const { currentUser, userProfile } = useAuth();
   const { showToast } = useToast();
-  const [decks, setDecks] = useState<Deck[]>([]);
+  const { decks } = useDecks(currentUser?.uid);
   const [cards, setCards] = useState<Card[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newDeck, setNewDeck] = useState({ name: '', description: '' });
   const [loading, setLoading] = useState(false);
 
-  // Firestore에서 덱 목록 실시간 구독
-  useEffect(() => {
-    if (!currentUser) return;
-
-    const unsubscribe = subscribeToDecksByUser(currentUser.uid, setDecks);
-    return () => unsubscribe();
-  }, [currentUser]);
+  const { values, errors, handleChange, validate, reset } = useForm(
+    { name: '', description: '' },
+    {
+      name: (value) => (!value || !value.trim() ? '덱 이름을 입력해주세요' : undefined),
+    }
+  );
 
   // Firestore에서 모든 카드 실시간 구독 (덱별 카운트 계산용)
   useEffect(() => {
@@ -61,16 +61,16 @@ export default function Home() {
   const handleCreateDeck = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!newDeck.name.trim() || !currentUser) return;
+    if (!validate() || !currentUser) return;
 
     setLoading(true);
     try {
       await createDeck(currentUser.uid, {
-        name: newDeck.name,
-        description: newDeck.description,
+        name: values.name,
+        description: values.description,
       });
 
-      setNewDeck({ name: '', description: '' });
+      reset();
       setIsModalOpen(false);
       showToast('덱이 생성되었습니다', 'success');
     } catch (error) {
@@ -166,8 +166,9 @@ export default function Home() {
           <Input
             label="덱 이름"
             placeholder="예: 일상 영어 회화"
-            value={newDeck.name}
-            onChange={(e) => setNewDeck({ ...newDeck, name: e.target.value })}
+            value={values.name}
+            onChange={handleChange('name')}
+            error={errors.name}
             required
           />
 
@@ -179,8 +180,8 @@ export default function Home() {
               className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-black transition-colors resize-none"
               rows={3}
               placeholder="덱에 대한 간단한 설명을 입력하세요"
-              value={newDeck.description}
-              onChange={(e) => setNewDeck({ ...newDeck, description: e.target.value })}
+              value={values.description}
+              onChange={handleChange('description')}
             />
           </div>
 
@@ -197,7 +198,7 @@ export default function Home() {
               type="submit"
               variant="primary"
               className="flex-1"
-              disabled={loading || !newDeck.name.trim()}
+              disabled={loading || !values.name.trim()}
             >
               {loading ? '생성 중...' : '만들기'}
             </Button>

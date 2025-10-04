@@ -6,25 +6,30 @@ import Button from '../components/Button';
 import Modal from '../components/Modal';
 import Input from '../components/Input';
 import { getDeck } from '../services/deckService';
-import { createCard, updateCard, deleteCard, subscribeToCardsByDeck } from '../services/cardService';
+import { createCard, updateCard, deleteCard } from '../services/cardService';
 import { useToast } from '../contexts/ToastContext';
 import { processError } from '../utils/errorHandler';
+import { useCards } from '../hooks/useCards';
+import { useForm } from '../hooks/useForm';
 
 export default function DeckDetail() {
   const { deckId } = useParams<{ deckId: string }>();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const { showToast } = useToast();
+  const { cards } = useCards(deckId);
   const [deck, setDeck] = useState<Deck | null>(null);
-  const [cards, setCards] = useState<Card[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCard, setEditingCard] = useState<Card | null>(null);
-  const [newCard, setNewCard] = useState({
-    front: '',
-    back: '',
-    memo: '',
-  });
   const [loading, setLoading] = useState(false);
+
+  const { values, errors, handleChange, validate, reset, setValues } = useForm(
+    { front: '', back: '', memo: '' },
+    {
+      front: (value) => (!value || !value.trim() ? '앞면을 입력해주세요' : undefined),
+      back: (value) => (!value || !value.trim() ? '뒷면을 입력해주세요' : undefined),
+    }
+  );
 
   // 덱 정보 가져오기
   useEffect(() => {
@@ -40,28 +45,20 @@ export default function DeckDetail() {
     fetchDeck();
   }, [deckId]);
 
-  // 카드 목록 실시간 구독
-  useEffect(() => {
-    if (!deckId) return;
-
-    const unsubscribe = subscribeToCardsByDeck(deckId, setCards);
-    return () => unsubscribe();
-  }, [deckId]);
-
   const handleCreateCard = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!newCard.front.trim() || !newCard.back.trim() || !deckId) return;
+    if (!validate() || !deckId) return;
 
     setLoading(true);
     try {
       await createCard(deckId, {
-        front: newCard.front,
-        back: newCard.back,
-        memo: newCard.memo,
+        front: values.front,
+        back: values.back,
+        memo: values.memo,
       });
 
-      setNewCard({ front: '', back: '', memo: '' });
+      reset();
       setIsModalOpen(false);
       showToast('카드가 추가되었습니다', 'success');
     } catch (error) {
@@ -75,17 +72,17 @@ export default function DeckDetail() {
   const handleUpdateCard = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!editingCard || !newCard.front.trim() || !newCard.back.trim()) return;
+    if (!editingCard || !validate()) return;
 
     setLoading(true);
     try {
       await updateCard(editingCard.id, {
-        front: newCard.front,
-        back: newCard.back,
-        memo: newCard.memo,
+        front: values.front,
+        back: values.back,
+        memo: values.memo,
       });
 
-      setNewCard({ front: '', back: '', memo: '' });
+      reset();
       setEditingCard(null);
       setIsModalOpen(false);
       showToast('카드가 수정되었습니다', 'success');
@@ -111,7 +108,7 @@ export default function DeckDetail() {
 
   const openEditModal = (card: Card) => {
     setEditingCard(card);
-    setNewCard({
+    setValues({
       front: card.front,
       back: card.back,
       memo: card.memo,
@@ -122,7 +119,7 @@ export default function DeckDetail() {
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingCard(null);
-    setNewCard({ front: '', back: '', memo: '' });
+    reset();
   };
 
   if (!deck) {
@@ -234,16 +231,18 @@ export default function DeckDetail() {
           <Input
             label="앞면 (공부할 단어/문장)"
             placeholder="예: Hello"
-            value={newCard.front}
-            onChange={(e) => setNewCard({ ...newCard, front: e.target.value })}
+            value={values.front}
+            onChange={handleChange('front')}
+            error={errors.front}
             required
           />
 
           <Input
             label="뒷면 (뜻)"
             placeholder="예: 안녕하세요"
-            value={newCard.back}
-            onChange={(e) => setNewCard({ ...newCard, back: e.target.value })}
+            value={values.back}
+            onChange={handleChange('back')}
+            error={errors.back}
             required
           />
 
@@ -255,8 +254,8 @@ export default function DeckDetail() {
               className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-black transition-colors resize-none"
               rows={3}
               placeholder="문법, 발음, 예문 등을 입력하세요"
-              value={newCard.memo}
-              onChange={(e) => setNewCard({ ...newCard, memo: e.target.value })}
+              value={values.memo}
+              onChange={handleChange('memo')}
             />
           </div>
 
@@ -268,7 +267,7 @@ export default function DeckDetail() {
               type="submit"
               variant="primary"
               className="flex-1"
-              disabled={loading || !newCard.front.trim() || !newCard.back.trim()}
+              disabled={loading || !values.front.trim() || !values.back.trim()}
             >
               {loading ? '처리 중...' : editingCard ? '수정' : '추가'}
             </Button>

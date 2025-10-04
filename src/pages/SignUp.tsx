@@ -7,70 +7,60 @@ import Input from '../components/Input';
 import { createUserProfile } from '../services/userService';
 import { useToast } from '../contexts/ToastContext';
 import { processError } from '../utils/errorHandler';
+import { useForm } from '../hooks/useForm';
 
 export default function SignUp() {
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    nickname: '',
-    phoneNumber: '',
-  });
-  const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.email) {
-      newErrors.email = '이메일을 입력해주세요';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = '올바른 이메일 형식이 아닙니다';
+  const { values, errors, handleChange, validate } = useForm(
+    {
+      email: '',
+      password: '',
+      confirmPassword: '',
+      nickname: '',
+      phoneNumber: '',
+    },
+    {
+      email: (value) => {
+        if (!value) return '이메일을 입력해주세요';
+        if (!/\S+@\S+\.\S+/.test(value)) return '올바른 이메일 형식이 아닙니다';
+        return undefined;
+      },
+      password: (value) => {
+        if (!value) return '비밀번호를 입력해주세요';
+        if (value.length < 6) return '비밀번호는 최소 6자 이상이어야 합니다';
+        return undefined;
+      },
+      confirmPassword: (value, allValues) => {
+        if (allValues.password !== value) return '비밀번호가 일치하지 않습니다';
+        return undefined;
+      },
+      nickname: (value) => (!value ? '닉네임을 입력해주세요' : undefined),
+      phoneNumber: (value) => (!value ? '전화번호를 입력해주세요' : undefined),
     }
-
-    if (!formData.password) {
-      newErrors.password = '비밀번호를 입력해주세요';
-    } else if (formData.password.length < 6) {
-      newErrors.password = '비밀번호는 최소 6자 이상이어야 합니다';
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = '비밀번호가 일치하지 않습니다';
-    }
-
-    if (!formData.nickname) {
-      newErrors.nickname = '닉네임을 입력해주세요';
-    }
-
-    if (!formData.phoneNumber) {
-      newErrors.phoneNumber = '전화번호를 입력해주세요';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) return;
+    if (!validate()) return;
 
     setLoading(true);
     try {
       // Firebase Authentication으로 사용자 생성
       const userCredential = await createUserWithEmailAndPassword(
         auth,
-        formData.email,
-        formData.password
+        values.email,
+        values.password
       );
 
       // Firestore에 사용자 추가 정보 저장
       await createUserProfile(userCredential.user.uid, {
-        email: formData.email,
-        nickname: formData.nickname,
-        phoneNumber: formData.phoneNumber,
+        email: values.email,
+        nickname: values.nickname,
+        phoneNumber: values.phoneNumber,
       });
 
       // 회원가입 성공 후 홈으로 이동
@@ -97,8 +87,8 @@ export default function SignUp() {
             label="이메일"
             type="email"
             placeholder="example@email.com"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            value={values.email}
+            onChange={handleChange('email')}
             error={errors.email}
           />
 
@@ -106,8 +96,8 @@ export default function SignUp() {
             label="비밀번호"
             type="password"
             placeholder="최소 6자 이상"
-            value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            value={values.password}
+            onChange={handleChange('password')}
             error={errors.password}
           />
 
@@ -115,8 +105,8 @@ export default function SignUp() {
             label="비밀번호 확인"
             type="password"
             placeholder="비밀번호를 다시 입력해주세요"
-            value={formData.confirmPassword}
-            onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+            value={values.confirmPassword}
+            onChange={handleChange('confirmPassword')}
             error={errors.confirmPassword}
           />
 
@@ -124,8 +114,8 @@ export default function SignUp() {
             label="닉네임"
             type="text"
             placeholder="닉네임을 입력해주세요"
-            value={formData.nickname}
-            onChange={(e) => setFormData({ ...formData, nickname: e.target.value })}
+            value={values.nickname}
+            onChange={handleChange('nickname')}
             error={errors.nickname}
           />
 
@@ -133,8 +123,8 @@ export default function SignUp() {
             label="전화번호"
             type="tel"
             placeholder="010-1234-5678"
-            value={formData.phoneNumber}
-            onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+            value={values.phoneNumber}
+            onChange={handleChange('phoneNumber')}
             error={errors.phoneNumber}
           />
 

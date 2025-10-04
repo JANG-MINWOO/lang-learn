@@ -6,38 +6,32 @@ import Button from '../components/Button';
 import Input from '../components/Input';
 import { useToast } from '../contexts/ToastContext';
 import { processError } from '../utils/errorHandler';
+import { useForm } from '../hooks/useForm';
 
 export default function Login() {
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
-  const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+
+  const { values, errors, handleChange, validate } = useForm(
+    {
+      email: '',
+      password: '',
+    },
+    {
+      email: (value) => (!value ? '이메일을 입력해주세요' : undefined),
+      password: (value) => (!value ? '비밀번호를 입력해주세요' : undefined),
+    }
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.email) {
-      newErrors.email = '이메일을 입력해주세요';
-    }
-
-    if (!formData.password) {
-      newErrors.password = '비밀번호를 입력해주세요';
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
+    if (!validate()) return;
 
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, formData.email, formData.password);
+      await signInWithEmailAndPassword(auth, values.email, values.password);
       showToast('로그인 성공!', 'success');
       navigate('/');
     } catch (error: any) {
@@ -61,8 +55,8 @@ export default function Login() {
             label="이메일"
             type="email"
             placeholder="example@email.com"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            value={values.email}
+            onChange={handleChange('email')}
             error={errors.email}
           />
 
@@ -70,8 +64,8 @@ export default function Login() {
             label="비밀번호"
             type="password"
             placeholder="비밀번호를 입력해주세요"
-            value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            value={values.password}
+            onChange={handleChange('password')}
             error={errors.password}
           />
 
