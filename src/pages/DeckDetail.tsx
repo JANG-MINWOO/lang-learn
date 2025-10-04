@@ -7,11 +7,14 @@ import Modal from '../components/Modal';
 import Input from '../components/Input';
 import { getDeck } from '../services/deckService';
 import { createCard, updateCard, deleteCard, subscribeToCardsByDeck } from '../services/cardService';
+import { useToast } from '../contexts/ToastContext';
+import { processError } from '../utils/errorHandler';
 
 export default function DeckDetail() {
   const { deckId } = useParams<{ deckId: string }>();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
+  const { showToast } = useToast();
   const [deck, setDeck] = useState<Deck | null>(null);
   const [cards, setCards] = useState<Card[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -60,9 +63,10 @@ export default function DeckDetail() {
 
       setNewCard({ front: '', back: '', memo: '' });
       setIsModalOpen(false);
+      showToast('카드가 추가되었습니다', 'success');
     } catch (error) {
-      console.error('Error creating card:', error);
-      alert('카드 생성 중 오류가 발생했습니다.');
+      const errorMessage = processError(error, 'CreateCard');
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
@@ -84,9 +88,10 @@ export default function DeckDetail() {
       setNewCard({ front: '', back: '', memo: '' });
       setEditingCard(null);
       setIsModalOpen(false);
+      showToast('카드가 수정되었습니다', 'success');
     } catch (error) {
-      console.error('Error updating card:', error);
-      alert('카드 수정 중 오류가 발생했습니다.');
+      const errorMessage = processError(error, 'UpdateCard');
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
@@ -97,9 +102,10 @@ export default function DeckDetail() {
 
     try {
       await deleteCard(cardId);
+      showToast('카드가 삭제되었습니다', 'success');
     } catch (error) {
-      console.error('Error deleting card:', error);
-      alert('카드 삭제 중 오류가 발생했습니다.');
+      const errorMessage = processError(error, 'DeleteCard');
+      showToast(errorMessage, 'error');
     }
   };
 

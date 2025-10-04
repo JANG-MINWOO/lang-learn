@@ -1550,26 +1550,28 @@ export const config = {
 - [x] 페이지에서 userService 적용 ✅
   - [x] `SignUp.tsx` - createUserProfile 사용 (Firestore 작업 간소화)
 
-#### Task 1.4: 에러 핸들링 시스템 구축 (2시간)
-- [ ] `src/contexts/ToastContext.tsx` 생성
-  - [ ] Toast 상태 관리 (success, error, info)
-  - [ ] `showToast(message, type)` 함수
-  - [ ] 자동 3초 후 사라지는 로직
-  - [ ] Toast UI 컴포넌트 (우측 하단 고정)
-  - [ ] 애니메이션 효과 (slide-in)
+#### Task 1.4: 에러 핸들링 시스템 구축 (2시간) ✅
+- [x] `src/contexts/ToastContext.tsx` 생성
+  - [x] Toast 상태 관리 (success, error, info)
+  - [x] `showToast(message, type)` 함수
+  - [x] 자동 3초 후 사라지는 로직
+  - [x] Toast UI 컴포넌트 (우측 하단 고정)
+  - [x] 애니메이션 효과 (slide-in)
 
-- [ ] `src/utils/errorHandler.ts` 생성
-  - [ ] `AppError` 클래스 정의
-  - [ ] `handleFirebaseError(error)` - Firebase 에러 → 한글 메시지 변환
-  - [ ] 에러 코드 맵핑 (auth/user-not-found, auth/wrong-password 등)
+- [x] `src/utils/errorHandler.ts` 생성
+  - [x] `AppError` 클래스 정의
+  - [x] `handleFirebaseError(error)` - Firebase 에러 → 한글 메시지 변환
+  - [x] 에러 코드 맵핑 (auth/user-not-found, auth/wrong-password 등)
+  - [x] `processError(error, context)` - 로깅 + 에러 처리 통합 함수
 
-- [ ] `App.tsx`에 ToastProvider 추가
-- [ ] 모든 페이지에서 `console.error` + `alert` → `useToast()` + `handleFirebaseError()` 교체
-  - [ ] `Login.tsx` 에러 핸들링 개선
-  - [ ] `SignUp.tsx` 에러 핸들링 개선
-  - [ ] `Home.tsx` 에러 핸들링 개선
-  - [ ] `DeckDetail.tsx` 에러 핸들링 개선
-  - [ ] `Study.tsx` 에러 핸들링 개선
+- [x] `App.tsx`에 ToastProvider 추가
+- [x] `tailwind.config.js`에 slide-in 애니메이션 추가
+- [x] 모든 페이지에서 `console.error` + `alert` → `useToast()` + `processError()` 교체
+  - [x] `Login.tsx` 에러 핸들링 개선 (로그인 성공/실패 toast)
+  - [x] `SignUp.tsx` 에러 핸들링 개선 (회원가입 성공/실패 toast)
+  - [x] `Home.tsx` 에러 핸들링 개선 (덱 생성 성공/실패, 로그아웃 에러 toast)
+  - [x] `DeckDetail.tsx` 에러 핸들링 개선 (카드 추가/수정/삭제 성공/실패 toast)
+  - [x] `Study.tsx` 에러 핸들링 개선 (카드 가져오기/업데이트 에러 toast)
 
 ---
 

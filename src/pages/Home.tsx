@@ -10,10 +10,13 @@ import Modal from '../components/Modal';
 import Input from '../components/Input';
 import { createDeck, subscribeToDecksByUser } from '../services/deckService';
 import { subscribeToCardsByDecks } from '../services/cardService';
+import { useToast } from '../contexts/ToastContext';
+import { processError } from '../utils/errorHandler';
 
 export default function Home() {
   const navigate = useNavigate();
   const { currentUser, userProfile } = useAuth();
+  const { showToast } = useToast();
   const [decks, setDecks] = useState<Deck[]>([]);
   const [cards, setCards] = useState<Card[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -69,9 +72,10 @@ export default function Home() {
 
       setNewDeck({ name: '', description: '' });
       setIsModalOpen(false);
+      showToast('덱이 생성되었습니다', 'success');
     } catch (error) {
-      console.error('Error creating deck:', error);
-      alert('덱 생성 중 오류가 발생했습니다.');
+      const errorMessage = processError(error, 'CreateDeck');
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
@@ -82,7 +86,8 @@ export default function Home() {
       await signOut(auth);
       navigate('/login');
     } catch (error) {
-      console.error('Logout error:', error);
+      const errorMessage = processError(error, 'Logout');
+      showToast(errorMessage, 'error');
     }
   };
 

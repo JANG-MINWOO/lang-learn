@@ -5,10 +5,13 @@ import { Difficulty } from '../types';
 import Button from '../components/Button';
 import { STUDY_CONFIG, KEYBOARD_SHORTCUTS } from '../utils/constants';
 import { getStudyCards, updateCard } from '../services/cardService';
+import { useToast } from '../contexts/ToastContext';
+import { processError } from '../utils/errorHandler';
 
 export default function Study() {
   const { deckId } = useParams<{ deckId: string }>();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [cards, setCards] = useState<Card[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -32,7 +35,8 @@ export default function Study() {
         setCards(studyCards);
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching cards:', error);
+        const errorMessage = processError(error, 'FetchStudyCards');
+        showToast(errorMessage, 'error');
         setLoading(false);
       }
     };
@@ -125,7 +129,8 @@ export default function Study() {
         reviewCount: currentCard.reviewCount + 1,
       });
     } catch (error) {
-      console.error('Error updating card:', error);
+      const errorMessage = processError(error, 'UpdateCardProgress');
+      showToast(errorMessage, 'error');
     }
 
     // 통계 업데이트

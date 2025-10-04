@@ -4,9 +4,12 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import Button from '../components/Button';
 import Input from '../components/Input';
+import { useToast } from '../contexts/ToastContext';
+import { processError } from '../utils/errorHandler';
 
 export default function Login() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -35,17 +38,11 @@ export default function Login() {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, formData.email, formData.password);
+      showToast('로그인 성공!', 'success');
       navigate('/');
     } catch (error: any) {
-      console.error('Login error:', error);
-
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-        setErrors({ general: '이메일 또는 비밀번호가 올바르지 않습니다' });
-      } else if (error.code === 'auth/invalid-credential') {
-        setErrors({ general: '이메일 또는 비밀번호가 올바르지 않습니다' });
-      } else {
-        setErrors({ general: '로그인 중 오류가 발생했습니다' });
-      }
+      const errorMessage = processError(error, 'Login');
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
@@ -77,10 +74,6 @@ export default function Login() {
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             error={errors.password}
           />
-
-          {errors.general && (
-            <p className="text-sm text-red-500 text-center">{errors.general}</p>
-          )}
 
           <Button
             type="submit"

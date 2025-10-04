@@ -5,9 +5,12 @@ import { auth } from '../config/firebase';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import { createUserProfile } from '../services/userService';
+import { useToast } from '../contexts/ToastContext';
+import { processError } from '../utils/errorHandler';
 
 export default function SignUp() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -71,15 +74,11 @@ export default function SignUp() {
       });
 
       // 회원가입 성공 후 홈으로 이동
+      showToast('회원가입 성공!', 'success');
       navigate('/');
     } catch (error: any) {
-      console.error('Sign up error:', error);
-
-      if (error.code === 'auth/email-already-in-use') {
-        setErrors({ email: '이미 사용 중인 이메일입니다' });
-      } else {
-        setErrors({ general: '회원가입 중 오류가 발생했습니다' });
-      }
+      const errorMessage = processError(error, 'SignUp');
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
@@ -138,10 +137,6 @@ export default function SignUp() {
             onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
             error={errors.phoneNumber}
           />
-
-          {errors.general && (
-            <p className="text-sm text-red-500 text-center">{errors.general}</p>
-          )}
 
           <Button
             type="submit"
