@@ -1,3 +1,5 @@
+import { useSpeech } from '../../hooks/useSpeech';
+
 interface StudyCardProps {
   frontText: string;
   backText: string;
@@ -24,16 +26,33 @@ export default function StudyCard({
   isReversed,
   onFlip,
 }: StudyCardProps) {
+  const { speak, isSupported } = useSpeech();
+
+  const handleSpeak = (text: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // 카드 뒤집기 방지
+    speak(text); // 언어 자동 감지
+  };
   return (
     <div
       className="bg-gradient-to-br from-white via-gray-50 to-white border-4 border-black rounded-2xl p-12 min-h-[400px] flex flex-col items-center justify-center cursor-pointer hover:shadow-2xl hover:border-gray-800 transition-all duration-300 shadow-lg"
       onClick={onFlip}
     >
-      <div className="text-center">
+      <div className="text-center relative w-full">
         <p className="text-sm text-gray-500 mb-4">
           {isReversed ? '뜻' : '단어/문장'}
         </p>
-        <p className="text-4xl font-bold bg-gradient-to-br from-black to-gray-700 bg-clip-text text-transparent mb-8">{frontText}</p>
+        <div className="flex items-center justify-center gap-3 mb-8">
+          <p className="text-4xl font-bold bg-gradient-to-br from-black to-gray-700 bg-clip-text text-transparent">{frontText}</p>
+          {isSupported && (
+            <button
+              onClick={(e) => handleSpeak(frontText, e)}
+              className="text-2xl hover:scale-110 transition-transform"
+              aria-label="읽기"
+            >
+              🔊
+            </button>
+          )}
+        </div>
 
         {isFlipped ? (
           <>
@@ -41,7 +60,18 @@ export default function StudyCard({
             <p className="text-sm text-gray-500 mb-2">
               {isReversed ? '단어/문장' : '뜻'}
             </p>
-            <p className="text-2xl text-gray-700 mb-4">{backText}</p>
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <p className="text-2xl text-gray-700">{backText}</p>
+              {isSupported && (
+                <button
+                  onClick={(e) => handleSpeak(backText, e)}
+                  className="text-xl hover:scale-110 transition-transform"
+                  aria-label="읽기"
+                >
+                  🔊
+                </button>
+              )}
+            </div>
 
             {memo && (
               <div className="mt-6 p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg shadow-sm">

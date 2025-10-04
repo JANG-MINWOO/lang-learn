@@ -181,7 +181,39 @@ VITE_FIREBASE_APP_ID=your_app_id
 VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
 ```
 
-### 4. 개발 서버 실행
+### 4. Google Cloud TTS 설정 (선택 - 고품질 음성)
+
+> **참고**: 이 단계는 선택사항입니다. 설정하지 않으면 브라우저 기본 음성(Web Speech API)을 사용합니다.
+
+#### 4.1 Google Cloud 프로젝트 생성
+1. [Google Cloud Console](https://console.cloud.google.com/) 접속
+2. 프로젝트 생성 (또는 기존 프로젝트 선택)
+
+#### 4.2 Text-to-Speech API 활성화
+1. [API 라이브러리](https://console.cloud.google.com/apis/library) 이동
+2. "Cloud Text-to-Speech API" 검색
+3. "사용 설정" 클릭
+
+#### 4.3 API 키 생성
+1. [API 및 서비스 > 사용자 인증 정보](https://console.cloud.google.com/apis/credentials) 이동
+2. "사용자 인증 정보 만들기" > "API 키" 클릭
+3. API 키 복사
+
+#### 4.4 환경변수에 API 키 추가
+
+`.env` 파일에 다음 줄 추가:
+
+```env
+VITE_GOOGLE_CLOUD_TTS_API_KEY=your_google_cloud_api_key
+```
+
+**요금 안내:**
+- 월 100만 자까지 무료
+- Standard 음성: $4 / 100만 자
+- Neural2/WaveNet: $16 / 100만 자
+- 개인 학습 앱이라면 무료 한도로 충분합니다
+
+### 5. 개발 서버 실행
 
 ```bash
 npm run dev
