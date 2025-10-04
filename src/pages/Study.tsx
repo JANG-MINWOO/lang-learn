@@ -1,18 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  doc,
-  updateDoc,
-  Timestamp,
-} from 'firebase/firestore';
-import { db } from '../config/firebase';
 import type { Card } from '../types';
 import { Difficulty } from '../types';
 import Button from '../components/Button';
+import { STUDY_CONFIG, KEYBOARD_SHORTCUTS } from '../utils/constants';
+import { getStudyCards, updateCard } from '../services/cardService';
 
 export default function Study() {
   const { deckId } = useParams<{ deckId: string }>();
@@ -30,29 +22,14 @@ export default function Study() {
     easy: 0,
   });
 
-  // 카드 가져오기 (최대 10개)
+  // 카드 가져오기
   useEffect(() => {
     if (!deckId) return;
 
     const fetchCards = async () => {
       try {
-        const q = query(collection(db, 'cards'), where('deckId', '==', deckId));
-        const snapshot = await getDocs(q);
-
-        const cardData = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-          nextReviewDate: doc.data().nextReviewDate?.toDate(),
-          createdAt: doc.data().createdAt?.toDate(),
-          updatedAt: doc.data().updatedAt?.toDate(),
-        })) as Card[];
-
-        // 복습이 필요한 카드 우선, 최대 10개
-        const today = new Date();
-        const dueCards = cardData.filter((card) => card.nextReviewDate <= today);
-        const studyCards = dueCards.length > 0 ? dueCards : cardData;
-
-        setCards(studyCards.slice(0, 10));
+        const studyCards = await getStudyCards(deckId, STUDY_CONFIG.MAX_CARDS_PER_SESSION);
+        setCards(studyCards);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching cards:', error);
@@ -69,7 +46,7 @@ export default function Study() {
 
     const handleKeyPress = (e: KeyboardEvent) => {
       // 스페이스바로 카드 플립
-      if (e.key === ' ' || e.code === 'Space') {
+      if (e.key === KEYBOARD_SHORTCUTS.FLIP_CARD || e.code === 'Space') {
         e.preventDefault();
         if (!isFlipped) {
           setIsFlipped(true);
@@ -80,10 +57,10 @@ export default function Study() {
       // 답변 선택 (카드가 플립된 상태에서만)
       if (!isFlipped) return;
 
-      if (e.key === '1') handleAnswer(Difficulty.AGAIN);
-      else if (e.key === '2') handleAnswer(Difficulty.HARD);
-      else if (e.key === '3') handleAnswer(Difficulty.GOOD);
-      else if (e.key === '4') handleAnswer(Difficulty.EASY);
+      if (e.key === KEYBOARD_SHORTCUTS.AGAIN) handleAnswer(Difficulty.AGAIN);
+      else if (e.key === KEYBOARD_SHORTCUTS.HARD) handleAnswer(Difficulty.HARD);
+      else if (e.key === KEYBOARD_SHORTCUTS.GOOD) handleAnswer(Difficulty.GOOD);
+      else if (e.key === KEYBOARD_SHORTCUTS.EASY) handleAnswer(Difficulty.EASY);
     };
 
     window.addEventListener('keydown', handleKeyPress);
@@ -95,21 +72,30 @@ export default function Study() {
     let newInterval = card.interval;
     let newEaseFactor = card.easeFactor;
 
+    const config = STUDY_CONFIG.DIFFICULTY_ADJUSTMENTS[difficulty];
+    const minInterval = STUDY_CONFIG.MIN_INTERVALS[difficulty];
+
     switch (difficulty) {
       case Difficulty.AGAIN:
-        newInterval = 0;
-        newEaseFactor = Math.max(1.3, card.easeFactor - 0.2);
+        newInterval = minInterval;
+        newEaseFactor = Math.max(
+          STUDY_CONFIG.MIN_EASE_FACTOR,
+          card.easeFactor + config.easeChange
+        );
         break;
       case Difficulty.HARD:
-        newInterval = Math.max(1, card.interval * 1.2);
-        newEaseFactor = Math.max(1.3, card.easeFactor - 0.15);
+        newInterval = Math.max(minInterval, card.interval * config.intervalMultiplier);
+        newEaseFactor = Math.max(
+          STUDY_CONFIG.MIN_EASE_FACTOR,
+          card.easeFactor + config.easeChange
+        );
         break;
       case Difficulty.GOOD:
-        newInterval = Math.max(3, card.interval * 2.5);
+        newInterval = Math.max(minInterval, card.interval * config.intervalMultiplier);
         break;
       case Difficulty.EASY:
-        newInterval = Math.max(7, card.interval * 4);
-        newEaseFactor = card.easeFactor + 0.1;
+        newInterval = Math.max(minInterval, card.interval * config.intervalMultiplier);
+        newEaseFactor = card.easeFactor + config.easeChange;
         break;
     }
 
@@ -132,12 +118,11 @@ export default function Study() {
 
     // Firestore 업데이트
     try {
-      await updateDoc(doc(db, 'cards', currentCard.id), {
+      await updateCard(currentCard.id, {
         interval,
         easeFactor,
-        nextReviewDate: Timestamp.fromDate(nextReviewDate),
+        nextReviewDate,
         reviewCount: currentCard.reviewCount + 1,
-        updatedAt: Timestamp.now(),
       });
     } catch (error) {
       console.error('Error updating card:', error);

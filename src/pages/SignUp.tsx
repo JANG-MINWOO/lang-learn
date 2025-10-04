@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
-import { auth, db } from '../config/firebase';
+import { auth } from '../config/firebase';
 import Button from '../components/Button';
 import Input from '../components/Input';
+import { createUserProfile } from '../services/userService';
 
 export default function SignUp() {
   const navigate = useNavigate();
@@ -64,12 +64,10 @@ export default function SignUp() {
       );
 
       // Firestore에 사용자 추가 정보 저장
-      await setDoc(doc(db, 'users', userCredential.user.uid), {
-        uid: userCredential.user.uid,
+      await createUserProfile(userCredential.user.uid, {
         email: formData.email,
         nickname: formData.nickname,
         phoneNumber: formData.phoneNumber,
-        createdAt: new Date(),
       });
 
       // 회원가입 성공 후 홈으로 이동

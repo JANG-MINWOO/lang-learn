@@ -1,23 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-  doc,
-  getDoc,
-  collection,
-  query,
-  where,
-  onSnapshot,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  Timestamp,
-} from 'firebase/firestore';
-import { db } from '../config/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import type { Deck, Card } from '../types';
 import Button from '../components/Button';
 import Modal from '../components/Modal';
 import Input from '../components/Input';
+import { getDeck } from '../services/deckService';
+import { createCard, updateCard, deleteCard, subscribeToCardsByDeck } from '../services/cardService';
 
 export default function DeckDetail() {
   const { deckId } = useParams<{ deckId: string }>();
@@ -39,14 +28,9 @@ export default function DeckDetail() {
     if (!deckId) return;
 
     const fetchDeck = async () => {
-      const deckDoc = await getDoc(doc(db, 'decks', deckId));
-      if (deckDoc.exists()) {
-        setDeck({
-          id: deckDoc.id,
-          ...deckDoc.data(),
-          createdAt: deckDoc.data().createdAt?.toDate(),
-          updatedAt: deckDoc.data().updatedAt?.toDate(),
-        } as Deck);
+      const deckData = await getDeck(deckId);
+      if (deckData) {
+        setDeck(deckData);
       }
     };
 
@@ -57,20 +41,7 @@ export default function DeckDetail() {
   useEffect(() => {
     if (!deckId) return;
 
-    const q = query(collection(db, 'cards'), where('deckId', '==', deckId));
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const cardData = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        nextReviewDate: doc.data().nextReviewDate?.toDate(),
-        createdAt: doc.data().createdAt?.toDate(),
-        updatedAt: doc.data().updatedAt?.toDate(),
-      })) as Card[];
-
-      setCards(cardData);
-    });
-
+    const unsubscribe = subscribeToCardsByDeck(deckId, setCards);
     return () => unsubscribe();
   }, [deckId]);
 
@@ -81,17 +52,10 @@ export default function DeckDetail() {
 
     setLoading(true);
     try {
-      await addDoc(collection(db, 'cards'), {
-        deckId,
+      await createCard(deckId, {
         front: newCard.front,
         back: newCard.back,
         memo: newCard.memo,
-        interval: 0,
-        nextReviewDate: Timestamp.now(),
-        easeFactor: 2.5,
-        reviewCount: 0,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
       });
 
       setNewCard({ front: '', back: '', memo: '' });
@@ -111,11 +75,10 @@ export default function DeckDetail() {
 
     setLoading(true);
     try {
-      await updateDoc(doc(db, 'cards', editingCard.id), {
+      await updateCard(editingCard.id, {
         front: newCard.front,
         back: newCard.back,
         memo: newCard.memo,
-        updatedAt: Timestamp.now(),
       });
 
       setNewCard({ front: '', back: '', memo: '' });
@@ -133,7 +96,7 @@ export default function DeckDetail() {
     if (!confirm('정말 이 카드를 삭제하시겠습니까?')) return;
 
     try {
-      await deleteDoc(doc(db, 'cards', cardId));
+      await deleteCard(cardId);
     } catch (error) {
       console.error('Error deleting card:', error);
       alert('카드 삭제 중 오류가 발생했습니다.');

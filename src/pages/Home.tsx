@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import { signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
-import { collection, query, where, onSnapshot, addDoc, Timestamp } from 'firebase/firestore';
-import { auth, db } from '../config/firebase';
+import { auth } from '../config/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import type { Deck, Card } from '../types';
 import Button from '../components/Button';
-import DeckCard from '../components/DeckCard';
+import DeckCard from '../components/deck/DeckCard';
 import Modal from '../components/Modal';
 import Input from '../components/Input';
+import { createDeck, subscribeToDecksByUser } from '../services/deckService';
+import { subscribeToCardsByDecks } from '../services/cardService';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -23,22 +24,7 @@ export default function Home() {
   useEffect(() => {
     if (!currentUser) return;
 
-    const q = query(
-      collection(db, 'decks'),
-      where('userId', '==', currentUser.uid)
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const deckData = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate(),
-        updatedAt: doc.data().updatedAt?.toDate(),
-      })) as Deck[];
-
-      setDecks(deckData);
-    });
-
+    const unsubscribe = subscribeToDecksByUser(currentUser.uid, setDecks);
     return () => unsubscribe();
   }, [currentUser]);
 
@@ -48,28 +34,7 @@ export default function Home() {
 
     // 사용자의 모든 덱 ID를 가져와서 카드 구독
     const deckIds = decks.map(deck => deck.id);
-    if (deckIds.length === 0) {
-      setCards([]);
-      return;
-    }
-
-    const q = query(
-      collection(db, 'cards'),
-      where('deckId', 'in', deckIds)
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const cardData = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        nextReviewDate: doc.data().nextReviewDate?.toDate(),
-        createdAt: doc.data().createdAt?.toDate(),
-        updatedAt: doc.data().updatedAt?.toDate(),
-      })) as Card[];
-
-      setCards(cardData);
-    });
-
+    const unsubscribe = subscribeToCardsByDecks(deckIds, setCards);
     return () => unsubscribe();
   }, [currentUser, decks]);
 
@@ -97,12 +62,9 @@ export default function Home() {
 
     setLoading(true);
     try {
-      await addDoc(collection(db, 'decks'), {
-        userId: currentUser.uid,
+      await createDeck(currentUser.uid, {
         name: newDeck.name,
         description: newDeck.description,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
       });
 
       setNewDeck({ name: '', description: '' });
