@@ -13,6 +13,8 @@ import {
 import { db } from '../config/firebase';
 import { COLLECTIONS } from '../utils/constants';
 import type { Deck } from '../types';
+import { isValidDeck, hasRequiredDeckFields } from '../types/guards';
+import { convertDeckDocument, convertDocumentData } from '../types/firebase';
 
 /**
  * 덱 조회
@@ -24,12 +26,16 @@ export async function getDeck(deckId: string): Promise<Deck | null> {
     return null;
   }
 
-  return {
-    id: deckDoc.id,
-    ...deckDoc.data(),
-    createdAt: deckDoc.data().createdAt?.toDate(),
-    updatedAt: deckDoc.data().updatedAt?.toDate(),
-  } as Deck;
+  // convertDocumentData로 Timestamp → Date 자동 변환
+  const deck = convertDocumentData(deckDoc.id, deckDoc.data()) as Deck;
+
+  // 타입 가드로 검증
+  if (!isValidDeck(deck)) {
+    console.warn('Invalid deck data from Firestore:', deck);
+    return null;
+  }
+
+  return deck;
 }
 
 /**
@@ -39,10 +45,19 @@ export async function createDeck(
   userId: string,
   data: { name: string; description?: string }
 ) {
-  return addDoc(collection(db, COLLECTIONS.DECKS), {
+  // 필수 필드 검증
+  const deckData = {
     userId,
     name: data.name,
     description: data.description || '',
+  };
+
+  if (!hasRequiredDeckFields(deckData)) {
+    throw new Error('Invalid deck data: missing required fields');
+  }
+
+  return addDoc(collection(db, COLLECTIONS.DECKS), {
+    ...deckData,
     createdAt: Timestamp.now(),
     updatedAt: Timestamp.now(),
   });
@@ -81,12 +96,16 @@ export function subscribeToDecksByUser(
   );
 
   return onSnapshot(q, (snapshot) => {
-    const decks = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate(),
-      updatedAt: doc.data().updatedAt?.toDate(),
-    })) as Deck[];
+    const decks = snapshot.docs
+      .map((doc) => convertDocumentData(doc.id, doc.data()) as Deck)
+      .filter((deck): deck is Deck => {
+        // 타입 가드로 검증하고 유효한 덱만 필터링
+        if (!isValidDeck(deck)) {
+          console.warn('Invalid deck data from Firestore:', deck);
+          return false;
+        }
+        return true;
+      });
 
     callback(decks);
   });

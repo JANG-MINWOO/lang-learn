@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../config/firebase';
@@ -43,24 +43,25 @@ export default function Home() {
     return () => unsubscribe();
   }, [currentUser, decks]);
 
-  // 덱별 카드 수 계산
-  const getDeckCardCount = (deckId: string) => {
+  // 덱별 카드 수 계산 (useCallback으로 메모이제이션)
+  const getDeckCardCount = useCallback((deckId: string) => {
     return cards.filter(card => card.deckId === deckId).length;
-  };
+  }, [cards]);
 
-  // 덱별 복습 대기 카드 수 계산
-  const getDeckDueCount = (deckId: string) => {
+  // 덱별 복습 대기 카드 수 계산 (useCallback으로 메모이제이션)
+  const getDeckDueCount = useCallback((deckId: string) => {
     const today = new Date();
     return cards.filter(
       card => card.deckId === deckId && card.nextReviewDate <= today
     ).length;
-  };
+  }, [cards]);
 
   // 전체 통계
   const totalCards = cards.length;
   const totalDueCards = cards.filter(card => card.nextReviewDate <= new Date()).length;
 
-  const handleCreateDeck = async (e: React.FormEvent) => {
+  // 덱 생성 핸들러 (useCallback으로 메모이제이션)
+  const handleCreateDeck = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validate() || !currentUser) return;
@@ -81,9 +82,10 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [validate, currentUser, values.name, values.description, reset, showToast]);
 
-  const handleLogout = async () => {
+  // 로그아웃 핸들러 (useCallback으로 메모이제이션)
+  const handleLogout = useCallback(async () => {
     try {
       await signOut(auth);
       navigate('/login');
@@ -91,7 +93,12 @@ export default function Home() {
       const errorMessage = processError(error, 'Logout');
       showToast(errorMessage, 'error');
     }
-  };
+  }, [navigate, showToast]);
+
+  // 덱 클릭 핸들러 (useCallback으로 메모이제이션)
+  const handleDeckClick = useCallback((deckId: string) => {
+    navigate(`/deck/${deckId}`);
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -150,7 +157,7 @@ export default function Home() {
                   description={deck.description}
                   cardCount={getDeckCardCount(deck.id)}
                   dueCount={getDeckDueCount(deck.id)}
-                  onClick={() => navigate(`/deck/${deck.id}`)}
+                  onClick={() => handleDeckClick(deck.id)}
                 />
               ))}
             </div>

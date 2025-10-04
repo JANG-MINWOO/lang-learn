@@ -15,6 +15,8 @@ import {
 import { db } from '../config/firebase';
 import { COLLECTIONS, STUDY_CONFIG } from '../utils/constants';
 import type { Card } from '../types';
+import { isValidCard, hasRequiredCardFields } from '../types/guards';
+import { convertCardDocument, convertDocumentData } from '../types/firebase';
 
 /**
  * 카드 생성
@@ -23,11 +25,20 @@ export async function createCard(
   deckId: string,
   data: { front: string; back: string; memo: string }
 ) {
-  return addDoc(collection(db, COLLECTIONS.CARDS), {
+  // 필수 필드 검증
+  const cardData = {
     deckId,
     front: data.front,
     back: data.back,
-    memo: data.memo,
+    memo: data.memo || '',
+  };
+
+  if (!hasRequiredCardFields(cardData)) {
+    throw new Error('Invalid card data: missing required fields');
+  }
+
+  return addDoc(collection(db, COLLECTIONS.CARDS), {
+    ...cardData,
     interval: 0,
     nextReviewDate: Timestamp.now(),
     easeFactor: STUDY_CONFIG.DEFAULT_EASE_FACTOR,
@@ -76,13 +87,16 @@ export function subscribeToCardsByDeck(
   );
 
   return onSnapshot(q, (snapshot) => {
-    const cards = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-      nextReviewDate: doc.data().nextReviewDate?.toDate(),
-      createdAt: doc.data().createdAt?.toDate(),
-      updatedAt: doc.data().updatedAt?.toDate(),
-    })) as Card[];
+    const cards = snapshot.docs
+      .map((doc) => convertDocumentData(doc.id, doc.data()) as Card)
+      .filter((card): card is Card => {
+        // 타입 가드로 검증하고 유효한 카드만 필터링
+        if (!isValidCard(card)) {
+          console.warn('Invalid card data from Firestore:', card);
+          return false;
+        }
+        return true;
+      });
 
     callback(cards);
   });
@@ -106,13 +120,16 @@ export function subscribeToCardsByDecks(
   );
 
   return onSnapshot(q, (snapshot) => {
-    const cards = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-      nextReviewDate: doc.data().nextReviewDate?.toDate(),
-      createdAt: doc.data().createdAt?.toDate(),
-      updatedAt: doc.data().updatedAt?.toDate(),
-    })) as Card[];
+    const cards = snapshot.docs
+      .map((doc) => convertDocumentData(doc.id, doc.data()) as Card)
+      .filter((card): card is Card => {
+        // 타입 가드로 검증하고 유효한 카드만 필터링
+        if (!isValidCard(card)) {
+          console.warn('Invalid card data from Firestore:', card);
+          return false;
+        }
+        return true;
+      });
 
     callback(cards);
   });
@@ -141,13 +158,15 @@ export async function getStudyCards(
 
   // 충분한 카드가 있으면 반환
   if (dueSnapshot.size >= maxCards) {
-    return dueSnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      nextReviewDate: doc.data().nextReviewDate?.toDate(),
-      createdAt: doc.data().createdAt?.toDate(),
-      updatedAt: doc.data().updatedAt?.toDate(),
-    })) as Card[];
+    return dueSnapshot.docs
+      .map(doc => convertDocumentData(doc.id, doc.data()) as Card)
+      .filter((card): card is Card => {
+        if (!isValidCard(card)) {
+          console.warn('Invalid card data from Firestore:', card);
+          return false;
+        }
+        return true;
+      });
   }
 
   // 2. 부족하면 전체 카드에서 추가
@@ -161,23 +180,26 @@ export async function getStudyCards(
 
   const allSnapshot = await getDocs(allQuery);
 
-  const dueCards = dueSnapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data(),
-    nextReviewDate: doc.data().nextReviewDate?.toDate(),
-    createdAt: doc.data().createdAt?.toDate(),
-    updatedAt: doc.data().updatedAt?.toDate(),
-  })) as Card[];
+  const dueCards = dueSnapshot.docs
+    .map(doc => convertDocumentData(doc.id, doc.data()) as Card)
+    .filter((card): card is Card => {
+      if (!isValidCard(card)) {
+        console.warn('Invalid card data from Firestore:', card);
+        return false;
+      }
+      return true;
+    });
 
   const additionalCards = allSnapshot.docs
     .filter(doc => !dueCards.some(card => card.id === doc.id))
-    .map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      nextReviewDate: doc.data().nextReviewDate?.toDate(),
-      createdAt: doc.data().createdAt?.toDate(),
-      updatedAt: doc.data().updatedAt?.toDate(),
-    })) as Card[];
+    .map(doc => convertDocumentData(doc.id, doc.data()) as Card)
+    .filter((card): card is Card => {
+      if (!isValidCard(card)) {
+        console.warn('Invalid card data from Firestore:', card);
+        return false;
+      }
+      return true;
+    });
 
   return [...dueCards, ...additionalCards];
 }

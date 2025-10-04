@@ -1,10 +1,20 @@
-import { Timestamp } from 'firebase/firestore';
+import type { Timestamp } from 'firebase/firestore';
 import type { Deck, Card, User } from './index';
+
+/**
+ * Firebase Firestore 타입 정의 및 변환 함수
+ * Firestore의 Timestamp와 앱의 Date 타입 간의 변환을 처리합니다.
+ */
 
 export type FirestoreTimestamp = Timestamp | Date;
 
 /**
- * Firestore 문서 타입 (서버에서 받는 형태)
+ * Firestore 문서 타입 (서버에 저장되는 형태)
+ * Timestamp 타입을 사용합니다.
+ */
+
+/**
+ * Firestore Deck 문서 타입
  */
 export interface DeckDocument {
   userId: string;
@@ -14,6 +24,9 @@ export interface DeckDocument {
   updatedAt: Timestamp;
 }
 
+/**
+ * Firestore Card 문서 타입
+ */
 export interface CardDocument {
   deckId: string;
   front: string;
@@ -27,6 +40,9 @@ export interface CardDocument {
   updatedAt: Timestamp;
 }
 
+/**
+ * Firestore User 문서 타입
+ */
 export interface UserDocument {
   uid: string;
   email: string;
@@ -36,7 +52,9 @@ export interface UserDocument {
 }
 
 /**
- * Firestore Timestamp를 Date로 변환
+ * Firestore Timestamp를 Date로 변환하는 헬퍼 함수
+ * @param timestamp - Firestore Timestamp 또는 Date
+ * @returns Date 객체 또는 undefined
  */
 export function convertFirestoreDate(
   timestamp: Timestamp | Date | undefined
@@ -47,7 +65,10 @@ export function convertFirestoreDate(
 }
 
 /**
- * Firestore DeckDocument를 앱 Deck 타입으로 변환
+ * Firestore Deck 문서를 앱 Deck 타입으로 변환
+ * @param id - 문서 ID
+ * @param doc - Firestore 문서 데이터
+ * @returns 앱에서 사용하는 Deck 타입
  */
 export function convertDeckDocument(id: string, doc: DeckDocument): Deck {
   return {
@@ -61,7 +82,10 @@ export function convertDeckDocument(id: string, doc: DeckDocument): Deck {
 }
 
 /**
- * Firestore CardDocument를 앱 Card 타입으로 변환
+ * Firestore Card 문서를 앱 Card 타입으로 변환
+ * @param id - 문서 ID
+ * @param doc - Firestore 문서 데이터
+ * @returns 앱에서 사용하는 Card 타입
  */
 export function convertCardDocument(id: string, doc: CardDocument): Card {
   return {
@@ -80,7 +104,9 @@ export function convertCardDocument(id: string, doc: CardDocument): Card {
 }
 
 /**
- * Firestore UserDocument를 앱 User 타입으로 변환
+ * Firestore User 문서를 앱 User 타입으로 변환
+ * @param doc - Firestore 문서 데이터
+ * @returns 앱에서 사용하는 User 타입
  */
 export function convertUserDocument(doc: UserDocument): User {
   return {
@@ -90,4 +116,28 @@ export function convertUserDocument(doc: UserDocument): User {
     phoneNumber: doc.phoneNumber,
     createdAt: convertFirestoreDate(doc.createdAt)!,
   };
+}
+
+/**
+ * DocumentData를 안전하게 변환하는 범용 헬퍼
+ * 모든 Timestamp 필드를 자동으로 Date로 변환합니다.
+ * @param id - 문서 ID
+ * @param data - Firestore DocumentData
+ * @returns 타임스탬프가 Date로 변환된 객체
+ */
+export function convertDocumentData(id: string, data: any): any {
+  const converted: any = { id };
+
+  for (const key in data) {
+    const value = data[key];
+
+    // Timestamp를 Date로 변환
+    if (value && typeof value.toDate === 'function') {
+      converted[key] = value.toDate();
+    } else {
+      converted[key] = value;
+    }
+  }
+
+  return converted;
 }

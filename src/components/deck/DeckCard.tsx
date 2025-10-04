@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 interface DeckCardProps {
   name: string;
   description?: string;
@@ -6,7 +8,11 @@ interface DeckCardProps {
   onClick?: () => void;
 }
 
-export default function DeckCard({
+/**
+ * 덱 카드 컴포넌트
+ * React.memo로 최적화되어 props가 변경되지 않으면 리렌더링되지 않습니다.
+ */
+const DeckCard = memo(function DeckCard({
   name,
   description,
   cardCount,
@@ -40,4 +46,15 @@ export default function DeckCard({
       </div>
     </div>
   );
-}
+}, (prevProps, nextProps) => {
+  // 커스텀 비교 함수: 모든 props가 동일하면 true 반환 (리렌더링 방지)
+  return (
+    prevProps.name === nextProps.name &&
+    prevProps.description === nextProps.description &&
+    prevProps.cardCount === nextProps.cardCount &&
+    prevProps.dueCount === nextProps.dueCount &&
+    prevProps.onClick === nextProps.onClick
+  );
+});
+
+export default DeckCard;

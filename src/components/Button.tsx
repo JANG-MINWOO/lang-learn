@@ -5,6 +5,11 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: 'sm' | 'md' | 'lg';
 }
 
+/**
+ * 재사용 가능한 버튼 컴포넌트
+ * @param variant - 버튼 스타일 (primary, secondary, outline, ghost)
+ * @param size - 버튼 크기 (sm, md, lg)
+ */
 export default function Button({
   variant = 'primary',
   size = 'md',

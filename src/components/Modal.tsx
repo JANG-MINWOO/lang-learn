@@ -7,6 +7,13 @@ interface ModalProps {
   children: ReactNode;
 }
 
+/**
+ * 재사용 가능한 모달 컴포넌트
+ * @param isOpen - 모달 표시 여부
+ * @param onClose - 모달 닫기 콜백
+ * @param title - 모달 제목
+ * @param children - 모달 내용
+ */
 export default function Modal({ isOpen, onClose, title, children }: ModalProps) {
   if (!isOpen) return null;
 

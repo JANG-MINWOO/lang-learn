@@ -1,6 +1,10 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
+/**
+ * 인증된 사용자만 접근 가능한 라우트
+ * 로그인하지 않은 사용자는 /login으로 리다이렉트
+ */
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { currentUser, loading } = useAuth();
 

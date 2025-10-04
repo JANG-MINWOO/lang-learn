@@ -1674,44 +1674,83 @@ export const config = {
 
 ### 🎯 Phase 4: 타입 안전성 & 성능 최적화
 
-#### Task 4.1: 타입 가드 추가 (1시간)
-- [ ] `src/types/guards.ts` 생성
-  - [ ] `isValidDeck(data)` - Deck 타입 검증
-  - [ ] `isValidCard(data)` - Card 타입 검증
-  - [ ] `isValidUser(data)` - User 타입 검증
+#### Task 4.1: 타입 가드 추가 (1시간) ✅
+- [x] `src/types/guards.ts` 생성
+  - [x] `isValidDeck(data)` - Deck 타입 검증 (모든 필수 필드 검증)
+  - [x] `isValidCard(data)` - Card 타입 검증 (모든 필수 필드 검증)
+  - [x] `isValidUser(data)` - User 타입 검증 (모든 필수 필드 검증)
+  - [x] `isValidDeckArray(data)`, `isValidCardArray(data)` - 배열 타입 검증
+  - [x] `hasRequiredDeckFields()`, `hasRequiredCardFields()`, `hasRequiredUserFields()` - 부분 검증 함수
+  - [x] JSDoc 문서화
 
-- [ ] 서비스 레이어에서 타입 가드 활용
+- [x] 서비스 레이어에서 타입 가드 활용
+  - [x] `deckService.ts` - getDeck, createDeck, subscribeToDecksByUser에 타입 가드 적용
+  - [x] `cardService.ts` - createCard, subscribeToCardsByDeck, subscribeToCardsByDecks, getStudyCards에 타입 가드 적용
+  - [x] 런타임 검증: 유효하지 않은 데이터는 console.warn 후 필터링
+  - [x] 생성 시 필수 필드 검증: 유효하지 않으면 Error throw
 
-#### Task 4.2: Firebase 타입 개선 (1시간)
-- [ ] `src/types/firebase.ts` 생성
-  - [ ] `DeckDocument`, `CardDocument`, `UserDocument` 타입
-  - [ ] `convertFirestoreDate()` 헬퍼
-  - [ ] `convertDeckDocument()` 변환 함수
-  - [ ] `convertCardDocument()` 변환 함수
+#### Task 4.2: Firebase 타입 개선 (1시간) ✅
+- [x] `src/types/firebase.ts` 생성
+  - [x] `DeckDocument`, `CardDocument`, `UserDocument` 타입 정의
+  - [x] `FirestoreTimestamp` 타입 별칭 정의
+  - [x] `convertFirestoreDate()` 헬퍼 - Timestamp ↔ Date 변환
+  - [x] `convertDeckDocument()` 변환 함수 - DeckDocument → Deck
+  - [x] `convertCardDocument()` 변환 함수 - CardDocument → Card
+  - [x] `convertUserDocument()` 변환 함수 - UserDocument → User
+  - [x] `convertDocumentData()` 범용 변환 함수 - 모든 Timestamp 자동 변환
+  - [x] JSDoc 문서화
 
-- [ ] 서비스 레이어에서 타입 변환 함수 적용
+- [x] 서비스 레이어에서 타입 변환 함수 적용
+  - [x] `deckService.ts` - getDeck, subscribeToDecksByUser에서 convertDocumentData 사용
+  - [x] `cardService.ts` - 모든 구독/조회 함수에서 convertDocumentData 사용
+  - [x] Timestamp → Date 변환 코드 중복 제거 (각 함수에서 3줄 → 1줄로 단축)
 
-#### Task 4.3: 성능 최적화 (1-2시간)
-- [ ] `DeckCard.tsx`에 React.memo 적용
-  - [ ] 커스텀 비교 함수 구현
+#### Task 4.3: 성능 최적화 (1-2시간) ✅
+- [x] `DeckCard.tsx`에 React.memo 적용
+  - [x] 커스텀 비교 함수 구현 (모든 props 비교)
+  - [x] props 변경 시에만 리렌더링되도록 최적화
+  - [x] JSDoc 문서화
 
-- [ ] 부모 컴포넌트에 useCallback 적용
-  - [ ] `Home.tsx` 이벤트 핸들러
-  - [ ] `DeckDetail.tsx` 이벤트 핸들러
+- [x] 부모 컴포넌트에 useCallback 적용
+  - [x] `Home.tsx` 이벤트 핸들러
+    - [x] handleCreateDeck, handleLogout, handleDeckClick
+    - [x] getDeckCardCount, getDeckDueCount 계산 함수
+  - [x] `DeckDetail.tsx` 이벤트 핸들러
+    - [x] handleCreateCard, handleUpdateCard, handleDeleteCard
+    - [x] openEditModal, closeModal
 
-- [ ] Firestore 쿼리 최적화
-  - [ ] `cardService.getStudyCards()` - 복습 우선 + limit 적용
-  - [ ] 불필요한 전체 조회 제거
+- [x] Firestore 쿼리 최적화 (이미 Phase 1에서 완료됨)
+  - [x] `cardService.getStudyCards()` - 복습 우선 + limit 적용
+  - [x] 2단계 쿼리: 복습 필요 카드 우선, 부족 시 추가 조회
+  - [x] 불필요한 전체 조회 제거
+
+**📊 성과:**
+- DeckCard 컴포넌트 불필요한 리렌더링 방지 (React.memo + 커스텀 비교 함수)
+- Home.tsx 5개 핸들러 메모이제이션 (handleCreateDeck, handleLogout, handleDeckClick, getDeckCardCount, getDeckDueCount)
+- DeckDetail.tsx 5개 핸들러 메모이제이션 (handleCreateCard, handleUpdateCard, handleDeleteCard, openEditModal, closeModal)
+- Firestore 쿼리 이미 최적화 완료 (getStudyCards에 2단계 쿼리 + limit 적용)
 
 ---
 
 ### 🎯 Phase 5: 마무리 & 문서화
 
-#### Task 5.1: 코드 정리 (1시간)
-- [ ] 사용하지 않는 import 제거
-- [ ] console.log 제거
-- [ ] 주석 정리 및 JSDoc 추가
-- [ ] 파일명/폴더명 일관성 확인
+#### Task 5.1: 코드 정리 (1시간) ✅
+- [x] 사용하지 않는 import 제거
+- [x] console.log 제거
+- [x] 주석 정리 및 JSDoc 추가
+- [x] 파일명/폴더명 일관성 확인
+
+**📊 성과:**
+- 모든 파일에서 불필요한 import 제거 완료 (TypeScript 진단 에러 0개)
+- console.log는 없음, console.warn/error는 에러 핸들링 및 타입 검증 용도로 유지
+- JSDoc 추가:
+  - `Button.tsx`, `Input.tsx`, `Modal.tsx`, `ProtectedRoute.tsx` - 재사용 컴포넌트 문서화
+  - 모든 서비스 함수 이미 JSDoc 완료 (Phase 1-4에서 작업)
+  - 모든 커스텀 훅 이미 JSDoc 완료 (Phase 2에서 작업)
+- 폴더 구조 일관성 검증 완료:
+  - `src/components/` (common, deck, study 서브폴더)
+  - `src/config/`, `src/contexts/`, `src/hooks/`, `src/pages/`, `src/services/`, `src/types/`, `src/utils/`
+  - 모든 컴포넌트 파일 PascalCase, 모든 훅 파일 camelCase
 
 #### Task 5.2: 테스트 & 검증 (1시간)
 - [ ] 모든 페이지 동작 테스트

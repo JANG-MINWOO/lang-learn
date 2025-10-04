@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import type { Deck, Card } from '../types';
@@ -48,7 +48,8 @@ export default function DeckDetail() {
     fetchDeck();
   }, [deckId]);
 
-  const handleCreateCard = async (e: React.FormEvent) => {
+  // 카드 생성 핸들러 (useCallback으로 메모이제이션)
+  const handleCreateCard = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validate() || !deckId) return;
@@ -70,9 +71,10 @@ export default function DeckDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [validate, deckId, values.front, values.back, values.memo, reset, showToast]);
 
-  const handleUpdateCard = async (e: React.FormEvent) => {
+  // 카드 수정 핸들러 (useCallback으로 메모이제이션)
+  const handleUpdateCard = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!editingCard || !validate()) return;
@@ -95,9 +97,10 @@ export default function DeckDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [editingCard, validate, values.front, values.back, values.memo, reset, showToast]);
 
-  const handleDeleteCard = async (cardId: string) => {
+  // 카드 삭제 핸들러 (useCallback으로 메모이제이션)
+  const handleDeleteCard = useCallback(async (cardId: string) => {
     if (!confirm('정말 이 카드를 삭제하시겠습니까?')) return;
 
     try {
@@ -107,9 +110,10 @@ export default function DeckDetail() {
       const errorMessage = processError(error, 'DeleteCard');
       showToast(errorMessage, 'error');
     }
-  };
+  }, [showToast]);
 
-  const openEditModal = (card: Card) => {
+  // 수정 모달 열기 핸들러 (useCallback으로 메모이제이션)
+  const openEditModal = useCallback((card: Card) => {
     setEditingCard(card);
     setValues({
       front: card.front,
@@ -117,13 +121,14 @@ export default function DeckDetail() {
       memo: card.memo,
     });
     setIsModalOpen(true);
-  };
+  }, [setValues]);
 
-  const closeModal = () => {
+  // 모달 닫기 핸들러 (useCallback으로 메모이제이션)
+  const closeModal = useCallback(() => {
     setIsModalOpen(false);
     setEditingCard(null);
     reset();
-  };
+  }, [reset]);
 
   if (!deck) {
     return <LoadingSpinner fullScreen />;

@@ -5,6 +5,11 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string;
 }
 
+/**
+ * 재사용 가능한 입력 필드 컴포넌트
+ * @param label - 입력 필드 레이블
+ * @param error - 에러 메시지 (표시 시 빨간색 border)
+ */
 export default function Input({ label, error, className = '', ...props }: InputProps) {
   return (
     <div className="w-full">
