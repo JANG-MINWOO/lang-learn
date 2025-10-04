@@ -15,7 +15,7 @@ export default function SignUp() {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
 
-  const { values, errors, handleChange, validate, setValues } = useForm(
+  const { values, errors, handleChange, validate, setValues, setErrors } = useForm(
     {
       email: '',
       password: '',
