@@ -39,6 +39,19 @@ export default function SignUp() {
     setValues((prev) => ({ ...prev, phoneNumber: formatted }));
   };
 
+  // 비밀번호 확인 입력 시 실시간 검증
+  const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setValues((prev) => ({ ...prev, confirmPassword: value }));
+
+    // 실시간으로 비밀번호 일치 여부 검증
+    if (value && values.password !== value) {
+      setErrors((prev) => ({ ...prev, confirmPassword: '비밀번호가 일치하지 않습니다' }));
+    } else {
+      setErrors((prev) => ({ ...prev, confirmPassword: undefined }));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -103,7 +116,7 @@ export default function SignUp() {
             type="password"
             placeholder="비밀번호를 다시 입력해주세요"
             value={values.confirmPassword}
-            onChange={handleChange('confirmPassword')}
+            onChange={handleConfirmPasswordChange}
             error={errors.confirmPassword}
           />
 
