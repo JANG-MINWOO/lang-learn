@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { collection, query, where, onSnapshot, addDoc, Timestamp } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
 import { useAuth } from '../contexts/AuthContext';
-import type { Deck } from '../types';
+import type { Deck, Card } from '../types';
 import Button from '../components/Button';
 import DeckCard from '../components/DeckCard';
 import Modal from '../components/Modal';
@@ -14,6 +14,7 @@ export default function Home() {
   const navigate = useNavigate();
   const { currentUser, userProfile } = useAuth();
   const [decks, setDecks] = useState<Deck[]>([]);
+  const [cards, setCards] = useState<Card[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newDeck, setNewDeck] = useState({ name: '', description: '' });
   const [loading, setLoading] = useState(false);
@@ -40,6 +41,54 @@ export default function Home() {
 
     return () => unsubscribe();
   }, [currentUser]);
+
+  // Firestore에서 모든 카드 실시간 구독 (덱별 카운트 계산용)
+  useEffect(() => {
+    if (!currentUser) return;
+
+    // 사용자의 모든 덱 ID를 가져와서 카드 구독
+    const deckIds = decks.map(deck => deck.id);
+    if (deckIds.length === 0) {
+      setCards([]);
+      return;
+    }
+
+    const q = query(
+      collection(db, 'cards'),
+      where('deckId', 'in', deckIds)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const cardData = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        nextReviewDate: doc.data().nextReviewDate?.toDate(),
+        createdAt: doc.data().createdAt?.toDate(),
+        updatedAt: doc.data().updatedAt?.toDate(),
+      })) as Card[];
+
+      setCards(cardData);
+    });
+
+    return () => unsubscribe();
+  }, [currentUser, decks]);
+
+  // 덱별 카드 수 계산
+  const getDeckCardCount = (deckId: string) => {
+    return cards.filter(card => card.deckId === deckId).length;
+  };
+
+  // 덱별 복습 대기 카드 수 계산
+  const getDeckDueCount = (deckId: string) => {
+    const today = new Date();
+    return cards.filter(
+      card => card.deckId === deckId && card.nextReviewDate <= today
+    ).length;
+  };
+
+  // 전체 통계
+  const totalCards = cards.length;
+  const totalDueCards = cards.filter(card => card.nextReviewDate <= new Date()).length;
 
   const handleCreateDeck = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,6 +135,17 @@ export default function Home() {
               <p className="text-gray-600 text-sm">
                 {userProfile?.nickname}님, 간격 반복 학습으로 언어를 마스터하세요
               </p>
+              <div className="flex gap-4 mt-2 text-sm text-gray-500">
+                <span>전체 덱: {decks.length}개</span>
+                <span>•</span>
+                <span>전체 카드: {totalCards}개</span>
+                {totalDueCards > 0 && (
+                  <>
+                    <span>•</span>
+                    <span className="font-medium text-black">복습할 카드: {totalDueCards}개</span>
+                  </>
+                )}
+              </div>
             </div>
             <div className="flex gap-3">
               <Button variant="primary" size="lg" onClick={() => setIsModalOpen(true)}>
@@ -119,8 +179,8 @@ export default function Home() {
                   key={deck.id}
                   name={deck.name}
                   description={deck.description}
-                  cardCount={0}
-                  dueCount={0}
+                  cardCount={getDeckCardCount(deck.id)}
+                  dueCount={getDeckDueCount(deck.id)}
                   onClick={() => navigate(`/deck/${deck.id}`)}
                 />
               ))}
