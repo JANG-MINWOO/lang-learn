@@ -1,6 +1,16 @@
+// 사용자 타입
+export interface User {
+  uid: string;
+  email: string;
+  nickname: string;
+  phoneNumber: string;
+  createdAt: Date;
+}
+
 // 덱 타입
 export interface Deck {
   id: string;
+  userId: string; // 덱 소유자
   name: string;
   description?: string;
   createdAt: Date;
