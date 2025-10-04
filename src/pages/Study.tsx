@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import type { Card } from '../types';
 import { Difficulty } from '../types';
 import Button from '../components/Button';
+import LoadingSpinner from '../components/common/LoadingSpinner';
+import StudyCard from '../components/study/StudyCard';
 import { STUDY_CONFIG, KEYBOARD_SHORTCUTS } from '../utils/constants';
 import { getStudyCards, updateCard } from '../services/cardService';
 import { useToast } from '../contexts/ToastContext';
@@ -95,11 +97,7 @@ export default function Study() {
   );
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <p className="text-gray-600">카드를 불러오는 중...</p>
-      </div>
-    );
+    return <LoadingSpinner message="카드를 불러오는 중..." fullScreen />;
   }
 
   if (cards.length === 0) {
@@ -198,39 +196,14 @@ export default function Study() {
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-6 py-12">
         <div className="mb-8">
-          {/* Card */}
-          <div
-            className="bg-white border-4 border-black rounded-2xl p-12 min-h-[400px] flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
-            onClick={() => setIsFlipped(!isFlipped)}
-          >
-            <div className="text-center">
-              <p className="text-sm text-gray-500 mb-4">
-                {isReversed ? '뜻' : '단어/문장'}
-              </p>
-              <p className="text-4xl font-bold text-black mb-8">{frontText}</p>
-
-              {isFlipped && (
-                <>
-                  <div className="border-t-2 border-gray-300 my-6 w-32 mx-auto" />
-                  <p className="text-sm text-gray-500 mb-2">
-                    {isReversed ? '단어/문장' : '뜻'}
-                  </p>
-                  <p className="text-2xl text-gray-700 mb-4">{backText}</p>
-
-                  {currentCard.memo && (
-                    <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                      <p className="text-xs text-gray-500 mb-1">메모</p>
-                      <p className="text-sm text-gray-600">{currentCard.memo}</p>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {!isFlipped && (
-                <p className="text-gray-400 text-sm">카드 클릭 또는 스페이스바로 답 확인</p>
-              )}
-            </div>
-          </div>
+          <StudyCard
+            frontText={frontText}
+            backText={backText}
+            memo={currentCard.memo}
+            isFlipped={isFlipped}
+            isReversed={isReversed}
+            onFlip={() => setIsFlipped(!isFlipped)}
+          />
         </div>
 
         {/* Answer Buttons */}

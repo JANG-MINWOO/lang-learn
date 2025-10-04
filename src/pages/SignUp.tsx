@@ -8,6 +8,7 @@ import { createUserProfile } from '../services/userService';
 import { useToast } from '../contexts/ToastContext';
 import { processError } from '../utils/errorHandler';
 import { useForm } from '../hooks/useForm';
+import * as validators from '../utils/validators';
 
 export default function SignUp() {
   const navigate = useNavigate();
@@ -23,22 +24,12 @@ export default function SignUp() {
       phoneNumber: '',
     },
     {
-      email: (value) => {
-        if (!value) return '이메일을 입력해주세요';
-        if (!/\S+@\S+\.\S+/.test(value)) return '올바른 이메일 형식이 아닙니다';
-        return undefined;
-      },
-      password: (value) => {
-        if (!value) return '비밀번호를 입력해주세요';
-        if (value.length < 6) return '비밀번호는 최소 6자 이상이어야 합니다';
-        return undefined;
-      },
-      confirmPassword: (value, allValues) => {
-        if (allValues.password !== value) return '비밀번호가 일치하지 않습니다';
-        return undefined;
-      },
-      nickname: (value) => (!value ? '닉네임을 입력해주세요' : undefined),
-      phoneNumber: (value) => (!value ? '전화번호를 입력해주세요' : undefined),
+      email: validators.email,
+      password: validators.password,
+      confirmPassword: (value, allValues) =>
+        validators.confirmPassword(allValues.password, value),
+      nickname: (value) => validators.required(value, '닉네임'),
+      phoneNumber: validators.phoneNumber,
     }
   );
 

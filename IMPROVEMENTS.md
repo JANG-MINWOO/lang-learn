@@ -1630,34 +1630,45 @@ export const config = {
 
 ### 🎯 Phase 3: 컴포넌트 & 검증 개선
 
-#### Task 3.1: 공통 컴포넌트 추가 (1시간)
-- [ ] `src/components/common/Textarea.tsx` 생성
-  - [ ] label, error props 지원
-  - [ ] Input 컴포넌트와 스타일 일관성 유지
+#### Task 3.1: 공통 컴포넌트 추가 (1시간) ✅
+- [x] `src/components/common/Textarea.tsx` 생성
+  - [x] label, error props 지원
+  - [x] Input 컴포넌트와 스타일 일관성 유지
+  - [x] TypeScript type import 적용
 
-- [ ] `src/components/common/LoadingSpinner.tsx` 생성
-  - [ ] fullScreen 옵션
-  - [ ] 커스텀 메시지 지원
-  - [ ] 일관된 로딩 UI
+- [x] `src/components/common/LoadingSpinner.tsx` 생성
+  - [x] fullScreen 옵션
+  - [x] 커스텀 메시지 지원
+  - [x] 일관된 로딩 UI
+  - [x] JSDoc 문서화
 
-- [ ] `src/components/study/StudyCard.tsx` 생성
-  - [ ] Study.tsx에서 카드 UI 분리
-  - [ ] frontText, backText, memo, isFlipped props
+- [x] `src/components/study/StudyCard.tsx` 생성
+  - [x] Study.tsx에서 카드 UI 분리 (35줄 → 컴포넌트로 추출)
+  - [x] frontText, backText, memo, isFlipped, isReversed, onFlip props
+  - [x] JSDoc 문서화
 
-- [ ] 모든 페이지에서 공통 컴포넌트 적용
+- [x] 모든 페이지에서 공통 컴포넌트 적용
+  - [x] `Study.tsx` - LoadingSpinner, StudyCard 사용 (40줄 감소)
+  - [x] `DeckDetail.tsx` - LoadingSpinner, Textarea 사용 (10줄 감소)
+  - [x] `Home.tsx` - Textarea 사용 (7줄 감소)
 
-#### Task 3.2: 검증 시스템 구축 (1시간)
-- [ ] `src/utils/validators.ts` 생성
-  - [ ] `email(value)` - 이메일 검증
-  - [ ] `password(value)` - 비밀번호 검증
-  - [ ] `confirmPassword(password, confirm)` - 비밀번호 확인
-  - [ ] `required(value, fieldName)` - 필수 입력
-  - [ ] `phoneNumber(value)` - 전화번호 검증
-  - [ ] `minLength(value, min, fieldName)` - 최소 길이
-  - [ ] `maxLength(value, max, fieldName)` - 최대 길이
+#### Task 3.2: 검증 시스템 구축 (1시간) ✅
+- [x] `src/utils/validators.ts` 생성
+  - [x] `email(value)` - 이메일 검증 (정규식 기반)
+  - [x] `password(value)` - 비밀번호 검증 (최소 6자)
+  - [x] `confirmPassword(password, confirm)` - 비밀번호 확인 (일치 여부)
+  - [x] `required(value, fieldName)` - 필수 입력 (trim 처리)
+  - [x] `phoneNumber(value)` - 전화번호 검증 (010-1234-5678 형식)
+  - [x] `minLength(value, min, fieldName)` - 최소 길이
+  - [x] `maxLength(value, max, fieldName)` - 최대 길이
+  - [x] JSDoc 문서화 및 named export/default export 지원
 
-- [ ] useForm 훅에 validationSchema 통합
-- [ ] 모든 폼에서 validators 적용
+- [x] useForm 훅에 validationSchema 통합 (이미 Phase 2에서 완료됨)
+- [x] 모든 폼에서 validators 적용
+  - [x] `Login.tsx` - email, password 검증 (인라인 로직 → validators 함수 사용)
+  - [x] `SignUp.tsx` - email, password, confirmPassword, nickname, phoneNumber 검증 (15줄 → 5줄로 단축)
+  - [x] `Home.tsx` - 덱 이름 required 검증
+  - [x] `DeckDetail.tsx` - 카드 앞면/뒷면 required 검증
 
 ---
 

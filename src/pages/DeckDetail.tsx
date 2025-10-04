@@ -5,12 +5,15 @@ import type { Deck, Card } from '../types';
 import Button from '../components/Button';
 import Modal from '../components/Modal';
 import Input from '../components/Input';
+import Textarea from '../components/common/Textarea';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 import { getDeck } from '../services/deckService';
 import { createCard, updateCard, deleteCard } from '../services/cardService';
 import { useToast } from '../contexts/ToastContext';
 import { processError } from '../utils/errorHandler';
 import { useCards } from '../hooks/useCards';
 import { useForm } from '../hooks/useForm';
+import * as validators from '../utils/validators';
 
 export default function DeckDetail() {
   const { deckId } = useParams<{ deckId: string }>();
@@ -26,8 +29,8 @@ export default function DeckDetail() {
   const { values, errors, handleChange, validate, reset, setValues } = useForm(
     { front: '', back: '', memo: '' },
     {
-      front: (value) => (!value || !value.trim() ? '앞면을 입력해주세요' : undefined),
-      back: (value) => (!value || !value.trim() ? '뒷면을 입력해주세요' : undefined),
+      front: (value) => validators.required(value, '앞면'),
+      back: (value) => validators.required(value, '뒷면'),
     }
   );
 
@@ -123,11 +126,7 @@ export default function DeckDetail() {
   };
 
   if (!deck) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <p className="text-gray-600">로딩 중...</p>
-      </div>
-    );
+    return <LoadingSpinner fullScreen />;
   }
 
   return (
@@ -246,18 +245,13 @@ export default function DeckDetail() {
             required
           />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              메모 (선택)
-            </label>
-            <textarea
-              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-black transition-colors resize-none"
-              rows={3}
-              placeholder="문법, 발음, 예문 등을 입력하세요"
-              value={values.memo}
-              onChange={handleChange('memo')}
-            />
-          </div>
+          <Textarea
+            label="메모 (선택)"
+            rows={3}
+            placeholder="문법, 발음, 예문 등을 입력하세요"
+            value={values.memo}
+            onChange={handleChange('memo')}
+          />
 
           <div className="flex gap-3 pt-4">
             <Button type="button" variant="ghost" className="flex-1" onClick={closeModal}>

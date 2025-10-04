@@ -7,6 +7,7 @@ import Input from '../components/Input';
 import { useToast } from '../contexts/ToastContext';
 import { processError } from '../utils/errorHandler';
 import { useForm } from '../hooks/useForm';
+import * as validators from '../utils/validators';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -19,8 +20,8 @@ export default function Login() {
       password: '',
     },
     {
-      email: (value) => (!value ? '이메일을 입력해주세요' : undefined),
-      password: (value) => (!value ? '비밀번호를 입력해주세요' : undefined),
+      email: validators.email,
+      password: validators.password,
     }
   );
 

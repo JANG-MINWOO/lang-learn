@@ -8,12 +8,14 @@ import Button from '../components/Button';
 import DeckCard from '../components/deck/DeckCard';
 import Modal from '../components/Modal';
 import Input from '../components/Input';
+import Textarea from '../components/common/Textarea';
 import { createDeck } from '../services/deckService';
 import { subscribeToCardsByDecks } from '../services/cardService';
 import { useToast } from '../contexts/ToastContext';
 import { processError } from '../utils/errorHandler';
 import { useDecks } from '../hooks/useDecks';
 import { useForm } from '../hooks/useForm';
+import * as validators from '../utils/validators';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -27,7 +29,7 @@ export default function Home() {
   const { values, errors, handleChange, validate, reset } = useForm(
     { name: '', description: '' },
     {
-      name: (value) => (!value || !value.trim() ? '덱 이름을 입력해주세요' : undefined),
+      name: (value) => validators.required(value, '덱 이름'),
     }
   );
 
@@ -172,18 +174,13 @@ export default function Home() {
             required
           />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              설명 (선택)
-            </label>
-            <textarea
-              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-black transition-colors resize-none"
-              rows={3}
-              placeholder="덱에 대한 간단한 설명을 입력하세요"
-              value={values.description}
-              onChange={handleChange('description')}
-            />
-          </div>
+          <Textarea
+            label="설명 (선택)"
+            rows={3}
+            placeholder="덱에 대한 간단한 설명을 입력하세요"
+            value={values.description}
+            onChange={handleChange('description')}
+          />
 
           <div className="flex gap-3 pt-4">
             <Button
