@@ -136,83 +136,84 @@ export default function DeckDetail() {
     <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-6 py-6">
-          <Button variant="ghost" onClick={() => navigate('/')} className="mb-4">
+        <div className="max-w-6xl mx-auto px-3 sm:px-6 py-3 sm:py-6">
+          <Button variant="ghost" size="sm" className="mb-3 sm:mb-4 text-xs sm:text-base py-1 sm:py-2" onClick={() => navigate('/')}>
             ← 뒤로 가기
           </Button>
 
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-black mb-1">{deck.name}</h1>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex-1">
+              <h1 className="text-xl sm:text-3xl font-bold text-black mb-1">{deck.name}</h1>
               {deck.description && (
-                <p className="text-gray-600 text-sm">{deck.description}</p>
+                <p className="text-gray-600 text-xs sm:text-sm">{deck.description}</p>
               )}
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex gap-2 sm:gap-3">
               <Button
                 variant="primary"
-                size="lg"
+                size="sm"
+                className="flex-1 sm:flex-none text-xs sm:text-base py-2"
                 onClick={() => navigate(`/study/${deckId}`)}
                 disabled={cards.length === 0}
               >
                 학습 시작
               </Button>
-              <Button variant="outline" size="lg" onClick={() => setIsModalOpen(true)}>
-                + 카드 추가
+              <Button variant="outline" size="sm" className="flex-1 sm:flex-none text-xs sm:text-base py-2" onClick={() => setIsModalOpen(true)}>
+                + 카드
               </Button>
             </div>
           </div>
 
-          <div className="mt-6 flex gap-4">
-            <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2">
-              <span className="text-gray-600 text-sm">전체 카드: </span>
-              <span className="font-bold text-black">{cards.length}</span>
+          <div className="mt-4 sm:mt-6 flex gap-3 sm:gap-4">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg px-3 sm:px-4 py-1.5 sm:py-2">
+              <span className="text-gray-600 text-xs sm:text-sm">카드: </span>
+              <span className="font-bold text-black text-sm sm:text-base">{cards.length}</span>
             </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-6 py-12">
+      <main className="max-w-6xl mx-auto px-3 sm:px-6 py-6 sm:py-12">
         {cards.length === 0 ? (
-          <div className="text-center py-16 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl">
-            <p className="text-gray-500 text-lg mb-4">아직 카드가 없습니다</p>
-            <Button variant="outline" onClick={() => setIsModalOpen(true)}>
+          <div className="text-center py-12 sm:py-16 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl">
+            <p className="text-gray-500 text-base sm:text-lg mb-3 sm:mb-4">아직 카드가 없습니다</p>
+            <Button variant="outline" size="sm" className="text-xs sm:text-base" onClick={() => setIsModalOpen(true)}>
               + 첫 번째 카드 추가
             </Button>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {cards.map((card) => (
               <div
                 key={card.id}
-                className="bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-black transition-colors"
+                className="bg-white border-2 border-gray-200 rounded-xl p-4 sm:p-6 hover:border-black transition-colors"
               >
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">앞면 (공부할 내용)</p>
-                    <p className="text-lg font-bold text-black">{card.front}</p>
+                    <p className="text-[10px] sm:text-xs text-gray-500 mb-1">앞면 (공부할 내용)</p>
+                    <p className="text-base sm:text-lg font-bold text-black">{card.front}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">뒷면 (뜻)</p>
-                    <p className="text-base text-gray-700">{card.back}</p>
+                    <p className="text-[10px] sm:text-xs text-gray-500 mb-1">뒷면 (뜻)</p>
+                    <p className="text-sm sm:text-base text-gray-700">{card.back}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">메모</p>
-                    <p className="text-sm text-gray-600">{card.memo || '메모 없음'}</p>
+                    <p className="text-[10px] sm:text-xs text-gray-500 mb-1">메모</p>
+                    <p className="text-xs sm:text-sm text-gray-600">{card.memo || '메모 없음'}</p>
                   </div>
                 </div>
 
-                <div className="flex gap-2 mt-4 pt-4 border-t border-gray-200">
-                  <Button variant="ghost" size="sm" onClick={() => openEditModal(card)}>
+                <div className="flex gap-2 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200">
+                  <Button variant="ghost" size="sm" className="text-xs sm:text-sm" onClick={() => openEditModal(card)}>
                     수정
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
+                    className="text-red-600 hover:bg-red-50 text-xs sm:text-sm"
                     onClick={() => handleDeleteCard(card.id)}
-                    className="text-red-600 hover:bg-red-50"
                   >
                     삭제
                   </Button>

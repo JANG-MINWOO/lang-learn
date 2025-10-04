@@ -104,30 +104,39 @@ export default function Home() {
     <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-6 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-black mb-1">Language Learning</h1>
-              <p className="text-gray-600 text-sm">
+        <div className="max-w-6xl mx-auto px-3 sm:px-6 py-3 sm:py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex-1">
+              <h1 className="text-xl sm:text-3xl font-bold text-black mb-1">Language Learning</h1>
+              <p className="text-gray-600 text-xs sm:text-sm hidden sm:block">
                 {userProfile?.nickname}님, 간격 반복 학습으로 언어를 마스터하세요
               </p>
-              <div className="flex gap-4 mt-2 text-sm text-gray-500">
-                <span>전체 덱: {decks.length}개</span>
+              <p className="text-gray-600 text-xs sm:hidden">
+                {userProfile?.nickname}님
+              </p>
+              <div className="flex flex-wrap gap-2 sm:gap-4 mt-2 text-xs sm:text-sm text-gray-500">
+                <span>덱: {decks.length}</span>
                 <span>•</span>
-                <span>전체 카드: {totalCards}개</span>
+                <span>카드: {totalCards}</span>
                 {totalDueCards > 0 && (
                   <>
                     <span>•</span>
-                    <span className="font-medium text-black">복습할 카드: {totalDueCards}개</span>
+                    <span className="font-medium text-black">복습: {totalDueCards}</span>
                   </>
                 )}
               </div>
             </div>
-            <div className="flex gap-3">
-              <Button variant="primary" size="lg" onClick={() => setIsModalOpen(true)}>
+            <div className="flex gap-2 sm:gap-3">
+              <Button variant="primary" size="sm" className="sm:hidden flex-1 text-xs py-2" onClick={() => setIsModalOpen(true)}>
+                + 덱
+              </Button>
+              <Button variant="primary" size="lg" className="hidden sm:inline-flex" onClick={() => setIsModalOpen(true)}>
                 + 새 덱 만들기
               </Button>
-              <Button variant="ghost" size="lg" onClick={handleLogout}>
+              <Button variant="ghost" size="sm" className="sm:hidden flex-1 text-xs py-2" onClick={handleLogout}>
+                로그아웃
+              </Button>
+              <Button variant="ghost" size="lg" className="hidden sm:inline-flex" onClick={handleLogout}>
                 로그아웃
               </Button>
             </div>

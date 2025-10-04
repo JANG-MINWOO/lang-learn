@@ -115,29 +115,29 @@ export default function Study() {
 
   if (isComplete) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center px-3 sm:px-0">
         <div className="max-w-md w-full text-center">
-          <h1 className="text-3xl font-bold text-black mb-6">학습 완료!</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-black mb-4 sm:mb-6">학습 완료!</h1>
 
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 mb-6">
-            <p className="text-gray-600 mb-4">총 {cards.length}개의 카드를 학습했습니다</p>
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 sm:p-6 mb-4 sm:mb-6">
+            <p className="text-gray-600 text-sm sm:text-base mb-3 sm:mb-4">총 {cards.length}개의 카드를 학습했습니다</p>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-white border border-gray-200 rounded-lg p-3">
-                <p className="text-xs text-gray-500">다시 학습</p>
-                <p className="text-2xl font-bold text-red-600">{stats.again}</p>
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
+              <div className="bg-white border border-gray-200 rounded-lg p-2 sm:p-3">
+                <p className="text-[10px] sm:text-xs text-gray-500">다시 학습</p>
+                <p className="text-xl sm:text-2xl font-bold text-red-600">{stats.again}</p>
               </div>
-              <div className="bg-white border border-gray-200 rounded-lg p-3">
-                <p className="text-xs text-gray-500">어려움</p>
-                <p className="text-2xl font-bold text-orange-600">{stats.hard}</p>
+              <div className="bg-white border border-gray-200 rounded-lg p-2 sm:p-3">
+                <p className="text-[10px] sm:text-xs text-gray-500">어려움</p>
+                <p className="text-xl sm:text-2xl font-bold text-orange-600">{stats.hard}</p>
               </div>
-              <div className="bg-white border border-gray-200 rounded-lg p-3">
-                <p className="text-xs text-gray-500">쉬움</p>
-                <p className="text-2xl font-bold text-blue-600">{stats.good}</p>
+              <div className="bg-white border border-gray-200 rounded-lg p-2 sm:p-3">
+                <p className="text-[10px] sm:text-xs text-gray-500">쉬움</p>
+                <p className="text-xl sm:text-2xl font-bold text-blue-600">{stats.good}</p>
               </div>
-              <div className="bg-white border border-gray-200 rounded-lg p-3">
-                <p className="text-xs text-gray-500">암기 완료</p>
-                <p className="text-2xl font-bold text-green-600">{stats.easy}</p>
+              <div className="bg-white border border-gray-200 rounded-lg p-2 sm:p-3">
+                <p className="text-[10px] sm:text-xs text-gray-500">암기 완료</p>
+                <p className="text-xl sm:text-2xl font-bold text-green-600">{stats.easy}</p>
               </div>
             </div>
           </div>
@@ -145,7 +145,7 @@ export default function Study() {
           <Button
             variant="primary"
             size="lg"
-            className="w-full"
+            className="w-full text-sm sm:text-base"
             onClick={() => navigate(`/deck/${deckId}`)}
           >
             덱으로 돌아가기
@@ -163,13 +163,13 @@ export default function Study() {
     <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-6 py-4">
+        <div className="max-w-4xl mx-auto px-3 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" onClick={() => navigate(`/deck/${deckId}`)}>
+            <div className="flex items-center gap-2 sm:gap-4">
+              <Button variant="ghost" size="sm" className="text-xs sm:text-base py-1 sm:py-2" onClick={() => navigate(`/deck/${deckId}`)}>
                 ← 나가기
               </Button>
-              <div className="text-sm text-gray-600">
+              <div className="text-xs sm:text-sm text-gray-600">
                 {currentIndex + 1} / {cards.length}
               </div>
             </div>
@@ -177,14 +177,15 @@ export default function Study() {
             <Button
               variant="outline"
               size="sm"
+              className="text-xs sm:text-sm py-1 sm:py-2 px-2 sm:px-3"
               onClick={() => setIsReversed(!isReversed)}
             >
-              {isReversed ? '뒷면 → 앞면' : '앞면 → 뒷면'}
+              {isReversed ? '뒷면→앞면' : '앞면→뒷면'}
             </Button>
           </div>
 
           {/* Progress Bar */}
-          <div className="mt-4 bg-gray-200 rounded-full h-2">
+          <div className="mt-3 sm:mt-4 bg-gray-200 rounded-full h-2">
             <div
               className="bg-black h-2 rounded-full transition-all duration-300"
               style={{ width: `${((currentIndex + 1) / cards.length) * 100}%` }}
@@ -194,8 +195,8 @@ export default function Study() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-6 py-12">
-        <div className="mb-8">
+      <main className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-12">
+        <div className="mb-6 sm:mb-8">
           <StudyCard
             frontText={frontText}
             backText={backText}
@@ -208,52 +209,52 @@ export default function Study() {
 
         {/* Answer Buttons */}
         {isFlipped && (
-          <div className="flex gap-3 overflow-x-auto">
+          <div className="grid grid-cols-2 sm:flex gap-2 sm:gap-3">
             <Button
               variant="outline"
-              size="lg"
+              size="sm"
               onClick={() => handleAnswer(Difficulty.AGAIN)}
-              className="border-red-500 text-red-600 hover:bg-red-50 flex-1 min-w-[120px]"
+              className="border-red-500 text-red-600 hover:bg-red-50 sm:flex-1 sm:min-w-[120px]"
             >
               <div className="text-center">
-                <div className="font-bold">다시 학습</div>
-                <div className="text-xs">즉시 다시 (1)</div>
+                <div className="font-bold text-xs sm:text-base">다시</div>
+                <div className="text-[10px] sm:text-xs">(1)</div>
               </div>
             </Button>
 
             <Button
               variant="outline"
-              size="lg"
+              size="sm"
               onClick={() => handleAnswer(Difficulty.HARD)}
-              className="border-orange-500 text-orange-600 hover:bg-orange-50 flex-1 min-w-[120px]"
+              className="border-orange-500 text-orange-600 hover:bg-orange-50 sm:flex-1 sm:min-w-[120px]"
             >
               <div className="text-center">
-                <div className="font-bold">어려움</div>
-                <div className="text-xs">짧은 간격 (2)</div>
+                <div className="font-bold text-xs sm:text-base">어려움</div>
+                <div className="text-[10px] sm:text-xs">(2)</div>
               </div>
             </Button>
 
             <Button
               variant="outline"
-              size="lg"
+              size="sm"
               onClick={() => handleAnswer(Difficulty.GOOD)}
-              className="border-blue-500 text-blue-600 hover:bg-blue-50 flex-1 min-w-[120px]"
+              className="border-blue-500 text-blue-600 hover:bg-blue-50 sm:flex-1 sm:min-w-[120px]"
             >
               <div className="text-center">
-                <div className="font-bold">쉬움</div>
-                <div className="text-xs">중간 간격 (3)</div>
+                <div className="font-bold text-xs sm:text-base">쉬움</div>
+                <div className="text-[10px] sm:text-xs">(3)</div>
               </div>
             </Button>
 
             <Button
               variant="outline"
-              size="lg"
+              size="sm"
               onClick={() => handleAnswer(Difficulty.EASY)}
-              className="border-green-500 text-green-600 hover:bg-green-50 flex-1 min-w-[120px]"
+              className="border-green-500 text-green-600 hover:bg-green-50 sm:flex-1 sm:min-w-[120px]"
             >
               <div className="text-center">
-                <div className="font-bold">암기 완료</div>
-                <div className="text-xs">긴 간격 (4)</div>
+                <div className="font-bold text-xs sm:text-base">완료</div>
+                <div className="text-[10px] sm:text-xs">(4)</div>
               </div>
             </Button>
           </div>
