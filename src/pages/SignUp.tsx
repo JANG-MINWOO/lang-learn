@@ -15,7 +15,7 @@ export default function SignUp() {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
 
-  const { values, errors, handleChange, validate } = useForm(
+  const { values, errors, handleChange, validate, setValues } = useForm(
     {
       email: '',
       password: '',
@@ -32,6 +32,12 @@ export default function SignUp() {
       phoneNumber: validators.phoneNumber,
     }
   );
+
+  // 전화번호 입력 시 자동 포맷팅
+  const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = validators.formatPhoneNumber(e.target.value);
+    setValues((prev) => ({ ...prev, phoneNumber: formatted }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,9 +119,9 @@ export default function SignUp() {
           <Input
             label="전화번호"
             type="tel"
-            placeholder="010-1234-5678"
+            placeholder="01012345678"
             value={values.phoneNumber}
-            onChange={handleChange('phoneNumber')}
+            onChange={handlePhoneNumberChange}
             error={errors.phoneNumber}
           />
 

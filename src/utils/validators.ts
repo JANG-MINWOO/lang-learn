@@ -66,19 +66,43 @@ export function required(value: string, fieldName: string): string | undefined {
 }
 
 /**
- * 전화번호 형식 검증 (예: 010-1234-5678)
+ * 전화번호 형식 검증 (예: 010-1234-5678 또는 01012345678)
  * @param value - 검증할 전화번호 값
  * @returns 에러 메시지 또는 undefined
  */
 export function phoneNumber(value: string): string | undefined {
   if (!value) return '전화번호를 입력해주세요';
 
-  const phoneRegex = /^[0-9]{2,3}-[0-9]{3,4}-[0-9]{4}$/;
-  if (!phoneRegex.test(value)) {
-    return '올바른 전화번호 형식이 아닙니다 (예: 010-1234-5678)';
+  // 숫자만 추출
+  const numbers = value.replace(/[^0-9]/g, '');
+
+  // 10자리 또는 11자리 숫자인지 확인
+  if (numbers.length < 10 || numbers.length > 11) {
+    return '올바른 전화번호 형식이 아닙니다 (10-11자리)';
   }
 
   return undefined;
+}
+
+/**
+ * 전화번호를 010-1234-5678 형식으로 포맷팅
+ * @param value - 포맷팅할 전화번호 값
+ * @returns 포맷팅된 전화번호
+ */
+export function formatPhoneNumber(value: string): string {
+  // 숫자만 추출
+  const numbers = value.replace(/[^0-9]/g, '');
+
+  // 길이에 따라 포맷팅
+  if (numbers.length <= 3) {
+    return numbers;
+  } else if (numbers.length <= 7) {
+    return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
+  } else if (numbers.length <= 10) {
+    return `${numbers.slice(0, 3)}-${numbers.slice(3, 6)}-${numbers.slice(6)}`;
+  } else {
+    return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`;
+  }
 }
 
 /**

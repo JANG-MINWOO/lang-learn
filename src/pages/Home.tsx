@@ -127,11 +127,11 @@ export default function Home() {
               </div>
             </div>
             <div className="flex gap-2 sm:gap-3">
-              <Button variant="primary" size="sm" className="sm:hidden flex-1 text-xs py-2" onClick={() => setIsModalOpen(true)}>
+              <Button variant="accent" size="sm" className="sm:hidden flex-1 text-xs py-2" onClick={() => setIsModalOpen(true)}>
                 + 덱
               </Button>
-              <Button variant="primary" size="lg" className="hidden sm:inline-flex" onClick={() => setIsModalOpen(true)}>
-                + 새 덱 만들기
+              <Button variant="accent" size="lg" className="hidden sm:inline-flex" onClick={() => setIsModalOpen(true)}>
+                ✨ 새 덱 만들기
               </Button>
               <Button variant="ghost" size="sm" className="sm:hidden flex-1 text-xs py-2" onClick={handleLogout}>
                 로그아웃

@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes } from 'react';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'accent';
   size?: 'sm' | 'md' | 'lg';
 }
 
@@ -17,13 +17,14 @@ export default function Button({
   children,
   ...props
 }: ButtonProps) {
-  const baseStyles = 'font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md active:shadow-sm';
+  const baseStyles = 'font-semibold rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed';
 
   const variants = {
-    primary: 'bg-gradient-to-b from-gray-900 to-black text-white hover:from-gray-800 hover:to-gray-900 active:from-black active:to-black',
-    secondary: 'bg-gradient-to-b from-gray-100 to-gray-200 text-black hover:from-gray-200 hover:to-gray-300 active:from-gray-300 active:to-gray-400',
-    outline: 'border-2 border-black text-black hover:bg-gradient-to-b hover:from-gray-900 hover:to-black hover:text-white',
+    primary: 'bg-gradient-to-b from-gray-900 to-black text-white hover:from-gray-800 hover:to-gray-900 active:from-black active:to-black shadow-sm hover:shadow-md active:shadow-sm',
+    secondary: 'bg-gradient-to-b from-gray-100 to-gray-200 text-black hover:from-gray-200 hover:to-gray-300 active:from-gray-300 active:to-gray-400 shadow-sm hover:shadow-md active:shadow-sm',
+    outline: 'border-2 border-black text-black hover:bg-gradient-to-b hover:from-gray-900 hover:to-black hover:text-white shadow-sm hover:shadow-md',
     ghost: 'text-black hover:bg-gradient-to-b hover:from-gray-50 hover:to-gray-100 active:from-gray-100 active:to-gray-200',
+    accent: 'bg-gradient-to-b from-gray-800 to-gray-900 text-white hover:from-gray-700 hover:to-gray-800 active:from-gray-900 active:to-black shadow-md hover:shadow-lg active:shadow-sm',
   };
 
   const sizes = {

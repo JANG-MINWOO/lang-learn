@@ -151,13 +151,13 @@ export default function DeckDetail() {
 
             <div className="flex gap-2 sm:gap-3">
               <Button
-                variant="primary"
+                variant="accent"
                 size="sm"
                 className="flex-1 sm:flex-none text-xs sm:text-base py-2"
                 onClick={() => navigate(`/study/${deckId}`)}
                 disabled={cards.length === 0}
               >
-                학습 시작
+                🚀 학습 시작
               </Button>
               <Button variant="outline" size="sm" className="flex-1 sm:flex-none text-xs sm:text-base py-2" onClick={() => setIsModalOpen(true)}>
                 + 카드
