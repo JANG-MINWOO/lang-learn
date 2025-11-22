@@ -31,7 +31,6 @@ import { useDecks } from '../../src/hooks/useDecks';
 import { useForm } from '../../src/hooks/useForm';
 import * as validators from '../../src/utils/validators';
 import { staggerContainer, staggerItem } from '../../src/lib/animations';
-import Link from 'next/link';
 
 export default function Dashboard() {
   const router = useRouter();
