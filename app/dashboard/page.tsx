@@ -30,7 +30,7 @@ import { processError } from '../../src/utils/errorHandler';
 import { useDecks } from '../../src/hooks/useDecks';
 import { useForm } from '../../src/hooks/useForm';
 import * as validators from '../../src/utils/validators';
-import { fadeIn, staggerContainer, staggerItem } from '../../src/lib/animations';
+import { staggerContainer, staggerItem } from '../../src/lib/animations';
 import Link from 'next/link';
 
 export default function Dashboard() {
