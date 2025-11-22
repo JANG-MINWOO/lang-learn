@@ -34,7 +34,7 @@ import { staggerContainer, staggerItem } from '../../src/lib/animations';
 
 export default function Dashboard() {
   const router = useRouter();
-  const { currentUser, userProfile, loading: authLoading } = useAuth();
+  const { currentUser, loading: authLoading } = useAuth();
   const { showToast } = useToast();
   const { decks, loading: decksLoading } = useDecks(currentUser?.uid);
   const [cards, setCards] = useState<Card[]>([]);

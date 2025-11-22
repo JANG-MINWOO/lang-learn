@@ -10,7 +10,6 @@ import { auth } from '../../config/firebase';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import { processError } from '../../utils/errorHandler';
-import { cn } from '../../lib/utils';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

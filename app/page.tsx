@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { FaBook, FaBrain, FaChartLine, FaUsers, FaRocket, FaHeart, FaClock, FaStar } from 'react-icons/fa';
+import { FaBook, FaBrain, FaChartLine, FaUsers, FaRocket, FaHeart, FaClock } from 'react-icons/fa';
 import Header from '../src/components/layout/Header';
 import { fadeIn, slideUp, staggerContainer, staggerItem } from '../src/lib/animations';
 import { useAuth } from '../src/contexts/AuthContext';

@@ -48,6 +48,7 @@ export interface UserDocument {
   email: string;
   nickname: string;
   phoneNumber: string;
+  provider: 'email' | 'google';
   createdAt: Timestamp;
 }
 
@@ -114,6 +115,7 @@ export function convertUserDocument(doc: UserDocument): User {
     email: doc.email,
     nickname: doc.nickname,
     phoneNumber: doc.phoneNumber,
+    provider: doc.provider,
     createdAt: convertFirestoreDate(doc.createdAt)!,
   };
 }

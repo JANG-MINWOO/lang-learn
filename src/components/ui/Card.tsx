@@ -1,10 +1,10 @@
 'use client';
 
-import { HTMLAttributes, ReactNode, forwardRef } from 'react';
-import { motion } from 'framer-motion';
+import { ReactNode, forwardRef } from 'react';
+import { motion, HTMLMotionProps } from 'framer-motion';
 import { cn } from '../../lib/utils';
 
-interface CardProps extends HTMLAttributes<HTMLDivElement> {
+interface CardProps extends Omit<HTMLMotionProps<'div'>, 'ref'> {
   variant?: 'default' | 'gradient' | 'outline' | 'elevated';
   hover?: boolean;
   clickable?: boolean;
