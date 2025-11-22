@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { FaEnvelope, FaLock, FaBook } from 'react-icons/fa';
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { FaEnvelope, FaLock, FaBook, FaGoogle } from 'react-icons/fa';
 import { auth } from '../../src/config/firebase';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { Button, Input, Card, LoadingSpinner } from '../../src/components/ui';
@@ -14,6 +14,7 @@ import { processError } from '../../src/utils/errorHandler';
 import { useForm } from '../../src/hooks/useForm';
 import * as validators from '../../src/utils/validators';
 import { fadeIn, slideUp } from '../../src/lib/animations';
+import { createUserProfile, findUserByEmail, updateUserProvider } from '../../src/services/userService';
 
 export default function Login() {
   const router = useRouter();
@@ -54,6 +55,50 @@ export default function Login() {
       showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+
+      const user = result.user;
+      const email = user.email || '';
+
+      // 같은 이메일로 이미 가입된 사용자가 있는지 확인
+      const existingUser = await findUserByEmail(email);
+
+      if (existingUser) {
+        // 이미 이메일로 가입한 경우
+        if (existingUser.provider === 'email') {
+          showToast(
+            '이미 이메일로 가입된 계정입니다. 구글 계정으로 전환됩니다.',
+            'info'
+          );
+
+          // Firestore의 provider만 업데이트
+          await updateUserProvider(existingUser.uid, 'google');
+        } else {
+          // 이미 구글로 가입한 경우
+          showToast('구글 로그인 성공!', 'success');
+        }
+      } else {
+        // 신규 사용자 - 프로필 생성
+        await createUserProfile(user.uid, {
+          email,
+          nickname: user.displayName || user.email?.split('@')[0] || '사용자',
+          phoneNumber: user.phoneNumber || '',
+          provider: 'google', // 구글 로그인
+        });
+
+        showToast('구글 로그인 성공!', 'success');
+      }
+
+      router.push('/dashboard');
+    } catch (error: any) {
+      const errorMessage = processError(error, 'GoogleLogin');
+      showToast(errorMessage, 'error');
     }
   };
 
@@ -124,6 +169,30 @@ export default function Login() {
                 isLoading={loading}
               >
                 {loading ? '로그인 중...' : '로그인'}
+              </Button>
+
+              {/* Divider */}
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white text-gray-500">또는</span>
+                </div>
+              </div>
+
+              {/* Google Login Button */}
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                fullWidth
+                onClick={handleGoogleLogin}
+                disabled={loading}
+                className="border-2 border-gray-300 hover:border-primary-400 hover:bg-primary-50"
+              >
+                <FaGoogle className="mr-2 text-red-500" />
+                Google로 로그인
               </Button>
             </form>
           </Card>

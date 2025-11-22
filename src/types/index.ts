@@ -4,6 +4,7 @@ export interface User {
   email: string;
   nickname: string;
   phoneNumber: string;
+  provider: 'email' | 'google'; // 로그인 제공자
   createdAt: Date;
 }
 

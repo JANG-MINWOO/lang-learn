@@ -2,12 +2,27 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+import {
+  FaBook,
+  FaPlus,
+  FaEdit,
+  FaTrash,
+  FaArrowLeft,
+  FaPlay,
+  FaLayerGroup,
+} from 'react-icons/fa';
 import type { Deck, Card } from '../../../src/types';
-import Button from '../../../src/components/Button';
-import Modal from '../../../src/components/Modal';
-import Input from '../../../src/components/Input';
-import Textarea from '../../../src/components/common/Textarea';
-import LoadingSpinner from '../../../src/components/common/LoadingSpinner';
+import {
+  Button,
+  Modal,
+  Input,
+  Textarea,
+  LoadingSpinner,
+  Container,
+  EmptyState,
+  Badge,
+} from '../../../src/components/ui';
 import { getDeck } from '../../../src/services/deckService';
 import { createCard, updateCard, deleteCard } from '../../../src/services/cardService';
 import { useToast } from '../../../src/contexts/ToastContext';
@@ -15,6 +30,7 @@ import { processError } from '../../../src/utils/errorHandler';
 import { useCards } from '../../../src/hooks/useCards';
 import { useForm } from '../../../src/hooks/useForm';
 import * as validators from '../../../src/utils/validators';
+import { fadeIn, staggerContainer, staggerItem } from '../../../src/lib/animations';
 
 export default function DeckDetail() {
   const params = useParams();
@@ -49,82 +65,94 @@ export default function DeckDetail() {
     fetchDeck();
   }, [deckId]);
 
-  // 카드 생성 핸들러 (useCallback으로 메모이제이션)
-  const handleCreateCard = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
+  // 카드 생성 핸들러
+  const handleCreateCard = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
 
-    if (!validate() || !deckId) return;
+      if (!validate() || !deckId) return;
 
-    setLoading(true);
-    try {
-      await createCard(deckId, {
-        front: values.front,
-        back: values.back,
-        memo: values.memo,
+      setLoading(true);
+      try {
+        await createCard(deckId, {
+          front: values.front,
+          back: values.back,
+          memo: values.memo,
+        });
+
+        reset();
+        setIsModalOpen(false);
+        showToast('카드가 추가되었습니다', 'success');
+      } catch (error) {
+        const errorMessage = processError(error, 'CreateCard');
+        showToast(errorMessage, 'error');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [validate, deckId, values.front, values.back, values.memo, reset, showToast]
+  );
+
+  // 카드 수정 핸들러
+  const handleUpdateCard = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+
+      if (!editingCard || !validate()) return;
+
+      setLoading(true);
+      try {
+        await updateCard(editingCard.id, {
+          front: values.front,
+          back: values.back,
+          memo: values.memo,
+        });
+
+        reset();
+        setEditingCard(null);
+        setIsModalOpen(false);
+        showToast('카드가 수정되었습니다', 'success');
+      } catch (error) {
+        const errorMessage = processError(error, 'UpdateCard');
+        showToast(errorMessage, 'error');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [editingCard, validate, values.front, values.back, values.memo, reset, showToast]
+  );
+
+  // 카드 삭제 핸들러
+  const handleDeleteCard = useCallback(
+    async (cardId: string) => {
+      if (!confirm('정말 이 카드를 삭제하시겠습니까?')) return;
+
+      try {
+        await deleteCard(cardId);
+        showToast('카드가 삭제되었습니다', 'success');
+      } catch (error) {
+        const errorMessage = processError(error, 'DeleteCard');
+        showToast(errorMessage, 'error');
+      }
+    },
+    [showToast]
+  );
+
+  // 수정 모달 열기 핸들러
+  const openEditModal = useCallback(
+    (card: Card) => {
+      setEditingCard(card);
+      setValues({
+        front: card.front,
+        back: card.back,
+        memo: card.memo,
       });
+      setIsModalOpen(true);
+    },
+    [setValues]
+  );
 
-      reset();
-      setIsModalOpen(false);
-      showToast('카드가 추가되었습니다', 'success');
-    } catch (error) {
-      const errorMessage = processError(error, 'CreateCard');
-      showToast(errorMessage, 'error');
-    } finally {
-      setLoading(false);
-    }
-  }, [validate, deckId, values.front, values.back, values.memo, reset, showToast]);
-
-  // 카드 수정 핸들러 (useCallback으로 메모이제이션)
-  const handleUpdateCard = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!editingCard || !validate()) return;
-
-    setLoading(true);
-    try {
-      await updateCard(editingCard.id, {
-        front: values.front,
-        back: values.back,
-        memo: values.memo,
-      });
-
-      reset();
-      setEditingCard(null);
-      setIsModalOpen(false);
-      showToast('카드가 수정되었습니다', 'success');
-    } catch (error) {
-      const errorMessage = processError(error, 'UpdateCard');
-      showToast(errorMessage, 'error');
-    } finally {
-      setLoading(false);
-    }
-  }, [editingCard, validate, values.front, values.back, values.memo, reset, showToast]);
-
-  // 카드 삭제 핸들러 (useCallback으로 메모이제이션)
-  const handleDeleteCard = useCallback(async (cardId: string) => {
-    if (!confirm('정말 이 카드를 삭제하시겠습니까?')) return;
-
-    try {
-      await deleteCard(cardId);
-      showToast('카드가 삭제되었습니다', 'success');
-    } catch (error) {
-      const errorMessage = processError(error, 'DeleteCard');
-      showToast(errorMessage, 'error');
-    }
-  }, [showToast]);
-
-  // 수정 모달 열기 핸들러 (useCallback으로 메모이제이션)
-  const openEditModal = useCallback((card: Card) => {
-    setEditingCard(card);
-    setValues({
-      front: card.front,
-      back: card.back,
-      memo: card.memo,
-    });
-    setIsModalOpen(true);
-  }, [setValues]);
-
-  // 모달 닫기 핸들러 (useCallback으로 메모이제이션)
+  // 모달 닫기 핸들러
   const closeModal = useCallback(() => {
     setIsModalOpen(false);
     setEditingCard(null);
@@ -132,99 +160,176 @@ export default function DeckDetail() {
   }, [reset]);
 
   if (!deck) {
-    return <LoadingSpinner fullScreen />;
+    return <LoadingSpinner fullScreen message="덱 정보 불러오는 중..." />;
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-b from-primary-50 via-white to-white pt-16">
       {/* Header */}
-      <header className="border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-3 sm:px-6 py-3 sm:py-6">
-          <Button variant="ghost" size="sm" className="mb-3 sm:mb-4 text-xs sm:text-base py-1 sm:py-2" onClick={() => router.push('/')}>
-            ← 뒤로 가기
-          </Button>
-
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex-1">
-              <h1 className="text-xl sm:text-3xl font-bold text-black mb-1">{deck.name}</h1>
-              {deck.description && (
-                <p className="text-gray-600 text-xs sm:text-sm">{deck.description}</p>
-              )}
-            </div>
-
-            <div className="flex gap-2 sm:gap-3">
-              <Button
-                variant="accent"
-                size="sm"
-                className="flex-1 sm:flex-none text-xs sm:text-base py-2"
-                onClick={() => router.push(`/study/${deckId}`)}
-                disabled={cards.length === 0}
+      <header className="bg-white border-b border-primary-100 shadow-sm sticky top-16 z-40">
+        <Container size="xl">
+          <div className="py-4 sm:py-6">
+            {/* Deck Info */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <motion.div
+                variants={fadeIn}
+                initial="hidden"
+                animate="visible"
+                className="flex-1"
               >
-                🚀 학습 시작
-              </Button>
-              <Button variant="outline" size="sm" className="flex-1 sm:flex-none text-xs sm:text-base py-2" onClick={() => setIsModalOpen(true)}>
-                + 카드
-              </Button>
-            </div>
-          </div>
+                <div className="flex items-center gap-3 mb-2">
+                  <button
+                    onClick={() => router.push('/dashboard')}
+                    className="p-2 rounded-lg hover:bg-primary-50 transition-colors"
+                    aria-label="대시보드로 돌아가기"
+                  >
+                    <FaArrowLeft className="text-xl text-primary-600" />
+                  </button>
+                  <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
+                    {deck.name}
+                  </h1>
+                </div>
+                {deck.description && (
+                  <p className="text-gray-600 text-sm ml-14">{deck.description}</p>
+                )}
+              </motion.div>
 
-          <div className="mt-4 sm:mt-6 flex gap-3 sm:gap-4">
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 shadow-sm">
-              <span className="text-gray-600 text-xs sm:text-sm">카드: </span>
-              <span className="font-bold text-black text-sm sm:text-base">{cards.length}</span>
+              {/* Actions */}
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="flex gap-2 sm:gap-3"
+              >
+                <Button
+                  variant="primary"
+                  size="md"
+                  onClick={() => router.push(`/study/${deckId}`)}
+                  disabled={cards.length === 0}
+                >
+                  <FaPlay className="mr-2" />
+                  <span className="hidden sm:inline">학습 시작</span>
+                  <span className="sm:hidden">학습</span>
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="md"
+                  onClick={() => setIsModalOpen(true)}
+                >
+                  <FaPlus className="sm:mr-2" />
+                  <span className="hidden sm:inline">카드 추가</span>
+                </Button>
+              </motion.div>
             </div>
+
+            {/* Stats */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="mt-4 flex gap-3"
+            >
+              <Badge variant="primary" size="md">
+                <FaLayerGroup className="mr-1" />
+                {cards.length}개 카드
+              </Badge>
+            </motion.div>
           </div>
-        </div>
+        </Container>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-3 sm:px-6 py-6 sm:py-12">
-        {cards.length === 0 ? (
-          <div className="text-center py-12 sm:py-16 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl">
-            <p className="text-gray-500 text-base sm:text-lg mb-3 sm:mb-4">아직 카드가 없습니다</p>
-            <Button variant="outline" size="sm" className="text-xs sm:text-base" onClick={() => setIsModalOpen(true)}>
-              + 첫 번째 카드 추가
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-3 sm:space-y-4">
-            {cards.map((card) => (
-              <div
-                key={card.id}
-                className="bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 rounded-xl p-4 sm:p-6 hover:border-black hover:shadow-lg transition-all duration-200 shadow-sm"
-              >
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
-                  <div>
-                    <p className="text-[10px] sm:text-xs text-gray-500 mb-1">앞면 (공부할 내용)</p>
-                    <p className="text-base sm:text-lg font-bold text-black">{card.front}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] sm:text-xs text-gray-500 mb-1">뒷면 (뜻)</p>
-                    <p className="text-sm sm:text-base text-gray-700">{card.back}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] sm:text-xs text-gray-500 mb-1">메모</p>
-                    <p className="text-xs sm:text-sm text-gray-600">{card.memo || '메모 없음'}</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-2 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200">
-                  <Button variant="ghost" size="sm" className="text-xs sm:text-sm" onClick={() => openEditModal(card)}>
-                    수정
-                  </Button>
+      <main className="py-8 sm:py-12">
+        <Container size="xl">
+          {cards.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <EmptyState
+                icon={FaBook}
+                title="아직 카드가 없습니다"
+                description="첫 번째 카드를 만들어 학습을 시작하세요"
+                action={
                   <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-red-600 hover:bg-red-50 text-xs sm:text-sm"
-                    onClick={() => handleDeleteCard(card.id)}
+                    variant="primary"
+                    size="lg"
+                    onClick={() => setIsModalOpen(true)}
                   >
-                    삭제
+                    <FaPlus className="mr-2" />
+                    첫 번째 카드 만들기
                   </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+                }
+              />
+            </motion.div>
+          ) : (
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              animate="visible"
+              className="space-y-4"
+            >
+              {cards.map((card) => (
+                <motion.div key={card.id} variants={staggerItem}>
+                  <div className="bg-white border-2 border-primary-200 rounded-2xl p-4 sm:p-6 hover:border-primary-400 hover:shadow-xl transition-all duration-200 shadow-md">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* 앞면 */}
+                      <div>
+                        <p className="text-xs text-gray-500 mb-2 font-semibold flex items-center gap-1">
+                          <span className="w-2 h-2 bg-primary-500 rounded-full" />
+                          앞면 (공부할 내용)
+                        </p>
+                        <p className="text-lg font-bold text-gray-900">{card.front}</p>
+                      </div>
+
+                      {/* 뒷면 */}
+                      <div>
+                        <p className="text-xs text-gray-500 mb-2 font-semibold flex items-center gap-1">
+                          <span className="w-2 h-2 bg-secondary-500 rounded-full" />
+                          뒷면 (뜻)
+                        </p>
+                        <p className="text-base text-gray-700">{card.back}</p>
+                      </div>
+
+                      {/* 메모 */}
+                      <div>
+                        <p className="text-xs text-gray-500 mb-2 font-semibold flex items-center gap-1">
+                          <span className="w-2 h-2 bg-accent-500 rounded-full" />
+                          메모
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {card.memo || (
+                            <span className="text-gray-400 italic">메모 없음</span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-2 mt-4 pt-4 border-t border-primary-100">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openEditModal(card)}
+                      >
+                        <FaEdit className="mr-1" />
+                        수정
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-600 hover:bg-red-50"
+                        onClick={() => handleDeleteCard(card.id)}
+                      >
+                        <FaTrash className="mr-1" />
+                        삭제
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </Container>
       </main>
 
       {/* Add/Edit Card Modal */}
@@ -232,14 +337,19 @@ export default function DeckDetail() {
         isOpen={isModalOpen}
         onClose={closeModal}
         title={editingCard ? '카드 수정' : '새 카드 추가'}
+        size="md"
       >
-        <form onSubmit={editingCard ? handleUpdateCard : handleCreateCard} className="space-y-4">
+        <form
+          onSubmit={editingCard ? handleUpdateCard : handleCreateCard}
+          className="space-y-5"
+        >
           <Input
             label="앞면 (공부할 단어/문장)"
             placeholder="예: Hello"
             value={values.front}
             onChange={handleChange('front')}
             error={errors.front}
+            leftIcon={<FaBook />}
             required
           />
 
@@ -249,6 +359,7 @@ export default function DeckDetail() {
             value={values.back}
             onChange={handleChange('back')}
             error={errors.back}
+            leftIcon={<FaBook />}
             required
           />
 
@@ -261,16 +372,24 @@ export default function DeckDetail() {
           />
 
           <div className="flex gap-3 pt-4">
-            <Button type="button" variant="ghost" className="flex-1" onClick={closeModal}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="lg"
+              fullWidth
+              onClick={closeModal}
+            >
               취소
             </Button>
             <Button
               type="submit"
               variant="primary"
-              className="flex-1"
-              disabled={loading || !values.front.trim() || !values.back.trim()}
+              size="lg"
+              fullWidth
+              isLoading={loading}
+              disabled={!values.front.trim() || !values.back.trim()}
             >
-              {loading ? '처리 중...' : editingCard ? '수정' : '추가'}
+              {editingCard ? '수정' : '추가'}
             </Button>
           </div>
         </form>

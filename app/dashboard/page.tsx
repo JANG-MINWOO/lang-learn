@@ -1,16 +1,28 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { auth } from '../../src/config/firebase';
+import { motion } from 'framer-motion';
+import {
+  FaBook,
+  FaPlus,
+  FaChartLine,
+  FaFire,
+  FaLayerGroup
+} from 'react-icons/fa';
 import { useAuth } from '../../src/contexts/AuthContext';
 import type { Card } from '../../src/types';
-import Button from '../../src/components/Button';
-import DeckCard from '../../src/components/deck/DeckCard';
-import Modal from '../../src/components/Modal';
-import Input from '../../src/components/Input';
-import Textarea from '../../src/components/common/Textarea';
+import {
+  Button,
+  DeckCard,
+  Modal,
+  Input,
+  Textarea,
+  LoadingSpinner,
+  EmptyState,
+  Container,
+  Badge
+} from '../../src/components/ui';
 import { createDeck } from '../../src/services/deckService';
 import { subscribeToCardsByDecks } from '../../src/services/cardService';
 import { useToast } from '../../src/contexts/ToastContext';
@@ -18,12 +30,14 @@ import { processError } from '../../src/utils/errorHandler';
 import { useDecks } from '../../src/hooks/useDecks';
 import { useForm } from '../../src/hooks/useForm';
 import * as validators from '../../src/utils/validators';
+import { fadeIn, staggerContainer, staggerItem } from '../../src/lib/animations';
+import Link from 'next/link';
 
-export default function Home() {
+export default function Dashboard() {
   const router = useRouter();
   const { currentUser, userProfile, loading: authLoading } = useAuth();
   const { showToast } = useToast();
-  const { decks } = useDecks(currentUser?.uid);
+  const { decks, loading: decksLoading } = useDecks(currentUser?.uid);
   const [cards, setCards] = useState<Card[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -44,13 +58,19 @@ export default function Home() {
 
   // Firestore에서 모든 카드 실시간 구독 (덱별 카운트 계산용)
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser || decksLoading) return;
+
+    // 덱이 없으면 빈 배열로 설정
+    if (decks.length === 0) {
+      setCards([]);
+      return;
+    }
 
     // 사용자의 모든 덱 ID를 가져와서 카드 구독
     const deckIds = decks.map(deck => deck.id);
     const unsubscribe = subscribeToCardsByDecks(deckIds, setCards);
     return () => unsubscribe();
-  }, [currentUser, decks]);
+  }, [currentUser, decks, decksLoading]);
 
   // 덱별 카드 수 계산 (useCallback으로 메모이제이션)
   const getDeckCardCount = useCallback((deckId: string) => {
@@ -93,32 +113,14 @@ export default function Home() {
     }
   }, [validate, currentUser, values.name, values.description, reset, showToast]);
 
-  // 로그아웃 핸들러 (useCallback으로 메모이제이션)
-  const handleLogout = useCallback(async () => {
-    try {
-      await signOut(auth);
-      router.push('/login');
-    } catch (error) {
-      const errorMessage = processError(error, 'Logout');
-      showToast(errorMessage, 'error');
-    }
-  }, [router, showToast]);
-
   // 덱 클릭 핸들러 (useCallback으로 메모이제이션)
   const handleDeckClick = useCallback((deckId: string) => {
     router.push(`/deck/${deckId}`);
   }, [router]);
 
   // 로딩 중
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-black border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">로딩 중...</p>
-        </div>
-      </div>
-    );
+  if (authLoading || decksLoading) {
+    return <LoadingSpinner fullScreen message="로딩 중..." />;
   }
 
   if (!currentUser) {
@@ -126,92 +128,146 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-3 sm:px-6 py-3 sm:py-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex-1">
-              <h1 className="text-xl sm:text-3xl font-bold text-black mb-1">Language Learning</h1>
-              <p className="text-gray-600 text-xs sm:text-sm hidden sm:block">
-                {userProfile?.nickname}님, 간격 반복 학습으로 언어를 마스터하세요
-              </p>
-              <p className="text-gray-600 text-xs sm:hidden">
-                {userProfile?.nickname}님
-              </p>
-              <div className="flex flex-wrap gap-2 sm:gap-4 mt-2 text-xs sm:text-sm text-gray-500">
-                <span>덱: {decks.length}</span>
-                <span>•</span>
-                <span>카드: {totalCards}</span>
-                {totalDueCards > 0 && (
-                  <>
-                    <span>•</span>
-                    <span className="font-medium text-black">복습: {totalDueCards}</span>
-                  </>
-                )}
-              </div>
-            </div>
-            <div className="flex gap-2 sm:gap-3">
-              <Button variant="accent" size="sm" className="sm:hidden flex-1 text-xs py-2" onClick={() => setIsModalOpen(true)}>
-                + 덱
-              </Button>
-              <Button variant="accent" size="lg" className="hidden sm:inline-flex" onClick={() => setIsModalOpen(true)}>
-                ✨ 새 덱 만들기
-              </Button>
-              <Button variant="ghost" size="sm" className="sm:hidden flex-1 text-xs py-2" onClick={handleLogout}>
-                로그아웃
-              </Button>
-              <Button variant="ghost" size="lg" className="hidden sm:inline-flex" onClick={handleLogout}>
-                로그아웃
+    <div className="min-h-screen bg-gradient-to-b from-primary-50 via-white to-white pt-16 md:pt-16">
+      {/* Quick Actions Bar */}
+      <div className="bg-white border-b border-primary-100 shadow-sm">
+        <Container size="xl">
+          <div className="py-4">
+            <div className="flex justify-end">
+              <Button
+                variant="primary"
+                size="md"
+                onClick={() => setIsModalOpen(true)}
+              >
+                <FaPlus className="sm:mr-2" />
+                <span className="hidden sm:inline">새 덱 만들기</span>
+                <span className="sm:hidden">덱 추가</span>
               </Button>
             </div>
           </div>
-        </div>
-      </header>
+        </Container>
+      </div>
+
+      {/* Stats Section */}
+      <div className="bg-gradient-to-r from-primary-100 to-secondary-100 border-b border-primary-200">
+        <Container size="xl">
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            animate="visible"
+            className="py-6 grid grid-cols-3 gap-4"
+          >
+            <motion.div variants={staggerItem} className="text-center">
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-white rounded-xl mb-2 shadow-sm">
+                <FaLayerGroup className="text-xl text-primary-600" />
+              </div>
+              <p className="text-2xl font-bold text-gray-900">{decks.length}</p>
+              <p className="text-sm text-gray-600">덱</p>
+            </motion.div>
+
+            <motion.div variants={staggerItem} className="text-center">
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-white rounded-xl mb-2 shadow-sm">
+                <FaChartLine className="text-xl text-secondary-600" />
+              </div>
+              <p className="text-2xl font-bold text-gray-900">{totalCards}</p>
+              <p className="text-sm text-gray-600">카드</p>
+            </motion.div>
+
+            <motion.div variants={staggerItem} className="text-center">
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-white rounded-xl mb-2 shadow-sm">
+                <FaFire className="text-xl text-red-500" />
+              </div>
+              <p className="text-2xl font-bold text-gray-900">{totalDueCards}</p>
+              <p className="text-sm text-gray-600">복습 대기</p>
+            </motion.div>
+          </motion.div>
+        </Container>
+      </div>
 
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-6 py-12">
-        {/* Deck List */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-black mb-6">내 덱</h2>
+      <main className="py-8 sm:py-12">
+        <Container size="xl">
+          {/* Section Header */}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
+                내 덱
+              </h2>
+              <p className="text-sm text-gray-600">
+                학습할 덱을 선택하거나 새 덱을 만들어보세요
+              </p>
+            </div>
 
+            {totalDueCards > 0 && (
+              <Badge variant="warning" size="lg" dot>
+                {totalDueCards}개 복습 필요
+              </Badge>
+            )}
+          </div>
+
+          {/* Deck List */}
           {decks.length === 0 ? (
-            <div className="text-center py-16 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl">
-              <p className="text-gray-500 text-lg mb-4">아직 덱이 없습니다</p>
-              <Button variant="outline" onClick={() => setIsModalOpen(true)}>
-                + 첫 번째 덱 만들기
-              </Button>
-            </div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <EmptyState
+                icon={FaBook}
+                title="아직 덱이 없습니다"
+                description="첫 번째 덱을 만들어 학습을 시작하세요"
+                action={
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    onClick={() => setIsModalOpen(true)}
+                  >
+                    <FaPlus className="mr-2" />
+                    첫 번째 덱 만들기
+                  </Button>
+                }
+              />
+            </motion.div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
               {decks.map((deck) => (
-                <DeckCard
-                  key={deck.id}
-                  name={deck.name}
-                  description={deck.description}
-                  cardCount={getDeckCardCount(deck.id)}
-                  dueCount={getDeckDueCount(deck.id)}
-                  onClick={() => handleDeckClick(deck.id)}
-                />
+                <motion.div key={deck.id} variants={staggerItem}>
+                  <DeckCard
+                    name={deck.name}
+                    description={deck.description}
+                    cardCount={getDeckCardCount(deck.id)}
+                    dueCount={getDeckDueCount(deck.id)}
+                    onClick={() => handleDeckClick(deck.id)}
+                  />
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           )}
-        </div>
+        </Container>
       </main>
 
       {/* Create Deck Modal */}
       <Modal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          reset();
+        }}
         title="새 덱 만들기"
+        size="md"
       >
-        <form onSubmit={handleCreateDeck} className="space-y-4">
+        <form onSubmit={handleCreateDeck} className="space-y-5">
           <Input
             label="덱 이름"
             placeholder="예: 일상 영어 회화"
             value={values.name}
             onChange={handleChange('name')}
             error={errors.name}
+            leftIcon={<FaBook />}
             required
           />
 
@@ -227,18 +283,24 @@ export default function Home() {
             <Button
               type="button"
               variant="ghost"
-              className="flex-1"
-              onClick={() => setIsModalOpen(false)}
+              size="lg"
+              fullWidth
+              onClick={() => {
+                setIsModalOpen(false);
+                reset();
+              }}
             >
               취소
             </Button>
             <Button
               type="submit"
               variant="primary"
-              className="flex-1"
-              disabled={loading || !values.name.trim()}
+              size="lg"
+              fullWidth
+              isLoading={loading}
+              disabled={!values.name.trim()}
             >
-              {loading ? '생성 중...' : '만들기'}
+              만들기
             </Button>
           </div>
         </form>

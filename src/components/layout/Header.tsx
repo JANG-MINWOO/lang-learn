@@ -2,16 +2,38 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaBars, FaTimes, FaBook } from 'react-icons/fa';
+import { FaBars, FaTimes, FaBook, FaSignOutAlt, FaUser, FaHome } from 'react-icons/fa';
+import { signOut } from 'firebase/auth';
+import { auth } from '../../config/firebase';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
+import { processError } from '../../utils/errorHandler';
 import { cn } from '../../lib/utils';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { currentUser } = useAuth();
+  const { currentUser, userProfile } = useAuth();
+  const { showToast } = useToast();
   const router = useRouter();
+  const pathname = usePathname();
+
+  // 학습 페이지에서는 헤더 표시 안 함
+  if (pathname?.startsWith('/study/')) {
+    return null;
+  }
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      showToast('로그아웃되었습니다', 'success');
+      router.push('/');
+    } catch (error) {
+      const errorMessage = processError(error, 'Logout');
+      showToast(errorMessage, 'error');
+    }
+  };
 
   const navItems = [
     { label: '소개', href: '/#about' },
@@ -48,12 +70,40 @@ export default function Header() {
 
             {/* Auth Buttons */}
             {currentUser ? (
-              <Link
-                href="/dashboard"
-                className="px-6 py-2 bg-gradient-to-r from-primary-500 to-secondary-500 text-white rounded-full font-medium hover:shadow-lg hover:scale-105 transition-all"
-              >
-                대시보드
-              </Link>
+              <div className="flex items-center gap-4">
+                {/* User Info */}
+                {userProfile && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <FaUser className="text-primary-500" />
+                    <span className="font-medium">{userProfile.nickname}님</span>
+                    {userProfile.provider === 'google' && (
+                      <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
+                        Google
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Dashboard Button (only show if not on dashboard) */}
+                {pathname !== '/dashboard' && (
+                  <Link
+                    href="/dashboard"
+                    className="px-5 py-2 text-gray-700 hover:text-primary-600 font-medium transition-colors flex items-center gap-2"
+                  >
+                    <FaHome />
+                    <span>대시보드</span>
+                  </Link>
+                )}
+
+                {/* Logout Button */}
+                <button
+                  onClick={handleLogout}
+                  className="px-5 py-2 text-gray-700 hover:text-red-600 font-medium transition-colors flex items-center gap-2"
+                >
+                  <FaSignOutAlt />
+                  <span>로그아웃</span>
+                </button>
+              </div>
             ) : (
               <div className="flex items-center gap-3">
                 <Link
@@ -105,13 +155,46 @@ export default function Header() {
 
               <div className="pt-3 border-t border-primary-100 space-y-2">
                 {currentUser ? (
-                  <Link
-                    href="/dashboard"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="block px-4 py-3 bg-gradient-to-r from-primary-500 to-secondary-500 text-white text-center rounded-lg font-medium"
-                  >
-                    대시보드
-                  </Link>
+                  <>
+                    {/* User Info */}
+                    {userProfile && (
+                      <div className="px-4 py-3 bg-primary-50 rounded-lg">
+                        <div className="flex items-center gap-2 text-sm text-gray-700">
+                          <FaUser className="text-primary-500" />
+                          <span className="font-medium">{userProfile.nickname}님</span>
+                          {userProfile.provider === 'google' && (
+                            <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
+                              Google
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Dashboard Link */}
+                    {pathname !== '/dashboard' && (
+                      <Link
+                        href="/dashboard"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="block px-4 py-3 bg-gradient-to-r from-primary-500 to-secondary-500 text-white text-center rounded-lg font-medium flex items-center justify-center gap-2"
+                      >
+                        <FaHome />
+                        <span>대시보드</span>
+                      </Link>
+                    )}
+
+                    {/* Logout Button */}
+                    <button
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        handleLogout();
+                      }}
+                      className="w-full px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                    >
+                      <FaSignOutAlt />
+                      <span>로그아웃</span>
+                    </button>
+                  </>
                 ) : (
                   <>
                     <Link

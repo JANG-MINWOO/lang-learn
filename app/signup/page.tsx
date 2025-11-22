@@ -4,12 +4,12 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { FaEnvelope, FaLock, FaUser, FaPhone, FaBook, FaCheckCircle } from 'react-icons/fa';
+import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { FaEnvelope, FaLock, FaUser, FaPhone, FaBook, FaCheckCircle, FaGoogle } from 'react-icons/fa';
 import { auth } from '../../src/config/firebase';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { Button, Input, Card, LoadingSpinner } from '../../src/components/ui';
-import { createUserProfile } from '../../src/services/userService';
+import { createUserProfile, findUserByEmail, updateUserProvider } from '../../src/services/userService';
 import { useToast } from '../../src/contexts/ToastContext';
 import { processError } from '../../src/utils/errorHandler';
 import { useForm } from '../../src/hooks/useForm';
@@ -85,6 +85,7 @@ export default function SignUp() {
         email: values.email,
         nickname: values.nickname,
         phoneNumber: values.phoneNumber,
+        provider: 'email', // 이메일 회원가입
       });
 
       // 회원가입 성공 후 대시보드로 이동
@@ -95,6 +96,51 @@ export default function SignUp() {
       showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+
+      const user = result.user;
+      const email = user.email || '';
+
+      // 같은 이메일로 이미 가입된 사용자가 있는지 확인
+      const existingUser = await findUserByEmail(email);
+
+      if (existingUser) {
+        // 이미 이메일로 가입한 경우
+        if (existingUser.provider === 'email') {
+          showToast(
+            '이미 이메일로 가입된 계정입니다. 구글 계정으로 전환됩니다.',
+            'info'
+          );
+
+          // Firebase Authentication에서 이메일 계정 삭제는 복잡하므로
+          // Firestore의 provider만 업데이트
+          await updateUserProvider(existingUser.uid, 'google');
+        } else {
+          // 이미 구글로 가입한 경우
+          showToast('이미 가입된 계정입니다.', 'info');
+        }
+      } else {
+        // 신규 사용자 - 프로필 생성
+        await createUserProfile(user.uid, {
+          email,
+          nickname: user.displayName || user.email?.split('@')[0] || '사용자',
+          phoneNumber: user.phoneNumber || '',
+          provider: 'google', // 구글 회원가입
+        });
+
+        showToast('구글 회원가입 성공!', 'success');
+      }
+
+      router.push('/dashboard');
+    } catch (error: any) {
+      const errorMessage = processError(error, 'GoogleSignUp');
+      showToast(errorMessage, 'error');
     }
   };
 
@@ -227,6 +273,32 @@ export default function SignUp() {
                     isLoading={loading}
                   >
                     {loading ? '회원가입 중...' : '회원가입'}
+                  </Button>
+                </motion.div>
+
+                {/* Divider */}
+                <motion.div variants={staggerItem} className="relative my-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-300"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white text-gray-500">또는</span>
+                  </div>
+                </motion.div>
+
+                {/* Google Sign Up Button */}
+                <motion.div variants={staggerItem}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="lg"
+                    fullWidth
+                    onClick={handleGoogleSignUp}
+                    disabled={loading}
+                    className="border-2 border-gray-300 hover:border-primary-400 hover:bg-primary-50"
+                  >
+                    <FaGoogle className="mr-2 text-red-500" />
+                    Google로 회원가입
                   </Button>
                 </motion.div>
               </motion.div>
