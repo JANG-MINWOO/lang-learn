@@ -1,20 +1,23 @@
+'use client';
+
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import type { Card } from '../types';
-import { Difficulty } from '../types';
-import Button from '../components/Button';
-import LoadingSpinner from '../components/common/LoadingSpinner';
-import StudyCard from '../components/study/StudyCard';
-import { STUDY_CONFIG, KEYBOARD_SHORTCUTS } from '../utils/constants';
-import { getStudyCards, updateCard } from '../services/cardService';
-import { useToast } from '../contexts/ToastContext';
-import { processError } from '../utils/errorHandler';
-import { useSpacedRepetition } from '../hooks/useSpacedRepetition';
-import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import { useParams, useRouter } from 'next/navigation';
+import type { Card } from '../../../src/types';
+import { Difficulty } from '../../../src/types';
+import Button from '../../../src/components/Button';
+import LoadingSpinner from '../../../src/components/common/LoadingSpinner';
+import StudyCard from '../../../src/components/study/StudyCard';
+import { STUDY_CONFIG, KEYBOARD_SHORTCUTS } from '../../../src/utils/constants';
+import { getStudyCards, updateCard } from '../../../src/services/cardService';
+import { useToast } from '../../../src/contexts/ToastContext';
+import { processError } from '../../../src/utils/errorHandler';
+import { useSpacedRepetition } from '../../../src/hooks/useSpacedRepetition';
+import { useKeyboardShortcuts } from '../../../src/hooks/useKeyboardShortcuts';
 
 export default function Study() {
-  const { deckId } = useParams<{ deckId: string }>();
-  const navigate = useNavigate();
+  const params = useParams();
+  const deckId = params?.deckId as string;
+  const router = useRouter();
   const { showToast } = useToast();
   const { calculateNextReview } = useSpacedRepetition();
   const [cards, setCards] = useState<Card[]>([]);
@@ -47,7 +50,7 @@ export default function Study() {
     };
 
     fetchCards();
-  }, [deckId]);
+  }, [deckId, showToast]);
 
   const handleAnswer = async (difficulty: Difficulty) => {
     const currentCard = cards[currentIndex];
@@ -105,7 +108,7 @@ export default function Study() {
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-600 text-lg mb-4">학습할 카드가 없습니다</p>
-          <Button variant="primary" onClick={() => navigate(`/deck/${deckId}`)}>
+          <Button variant="primary" onClick={() => router.push(`/deck/${deckId}`)}>
             덱으로 돌아가기
           </Button>
         </div>
@@ -146,7 +149,7 @@ export default function Study() {
             variant="primary"
             size="lg"
             className="w-full text-sm sm:text-base"
-            onClick={() => navigate(`/deck/${deckId}`)}
+            onClick={() => router.push(`/deck/${deckId}`)}
           >
             덱으로 돌아가기
           </Button>
@@ -166,7 +169,7 @@ export default function Study() {
         <div className="max-w-4xl mx-auto px-3 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 sm:gap-4">
-              <Button variant="ghost" size="sm" className="text-xs sm:text-base py-1 sm:py-2" onClick={() => navigate(`/deck/${deckId}`)}>
+              <Button variant="ghost" size="sm" className="text-xs sm:text-base py-1 sm:py-2" onClick={() => router.push(`/deck/${deckId}`)}>
                 ← 나가기
               </Button>
               <div className="text-xs sm:text-sm text-gray-600">

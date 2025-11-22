@@ -1,22 +1,25 @@
+'use client';
+
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import type { Deck, Card } from '../types';
-import Button from '../components/Button';
-import Modal from '../components/Modal';
-import Input from '../components/Input';
-import Textarea from '../components/common/Textarea';
-import LoadingSpinner from '../components/common/LoadingSpinner';
-import { getDeck } from '../services/deckService';
-import { createCard, updateCard, deleteCard } from '../services/cardService';
-import { useToast } from '../contexts/ToastContext';
-import { processError } from '../utils/errorHandler';
-import { useCards } from '../hooks/useCards';
-import { useForm } from '../hooks/useForm';
-import * as validators from '../utils/validators';
+import { useParams, useRouter } from 'next/navigation';
+import type { Deck, Card } from '../../../src/types';
+import Button from '../../../src/components/Button';
+import Modal from '../../../src/components/Modal';
+import Input from '../../../src/components/Input';
+import Textarea from '../../../src/components/common/Textarea';
+import LoadingSpinner from '../../../src/components/common/LoadingSpinner';
+import { getDeck } from '../../../src/services/deckService';
+import { createCard, updateCard, deleteCard } from '../../../src/services/cardService';
+import { useToast } from '../../../src/contexts/ToastContext';
+import { processError } from '../../../src/utils/errorHandler';
+import { useCards } from '../../../src/hooks/useCards';
+import { useForm } from '../../../src/hooks/useForm';
+import * as validators from '../../../src/utils/validators';
 
 export default function DeckDetail() {
-  const { deckId } = useParams<{ deckId: string }>();
-  const navigate = useNavigate();
+  const params = useParams();
+  const deckId = params?.deckId as string;
+  const router = useRouter();
   const { showToast } = useToast();
   const { cards } = useCards(deckId);
   const [deck, setDeck] = useState<Deck | null>(null);
@@ -137,7 +140,7 @@ export default function DeckDetail() {
       {/* Header */}
       <header className="border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-3 sm:px-6 py-3 sm:py-6">
-          <Button variant="ghost" size="sm" className="mb-3 sm:mb-4 text-xs sm:text-base py-1 sm:py-2" onClick={() => navigate('/')}>
+          <Button variant="ghost" size="sm" className="mb-3 sm:mb-4 text-xs sm:text-base py-1 sm:py-2" onClick={() => router.push('/')}>
             ← 뒤로 가기
           </Button>
 
@@ -154,7 +157,7 @@ export default function DeckDetail() {
                 variant="accent"
                 size="sm"
                 className="flex-1 sm:flex-none text-xs sm:text-base py-2"
-                onClick={() => navigate(`/study/${deckId}`)}
+                onClick={() => router.push(`/study/${deckId}`)}
                 disabled={cards.length === 0}
               >
                 🚀 학습 시작

@@ -63,7 +63,7 @@ export function useSpeech() {
         audioRef.current.currentTime = 0;
       }
 
-      const apiKey = import.meta.env.VITE_GOOGLE_CLOUD_TTS_API_KEY;
+      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_CLOUD_TTS_API_KEY;
       if (!apiKey) {
         console.warn('Google Cloud TTS API key is not configured. Falling back to Web Speech API.');
         // Fallback to Web Speech API

@@ -1,25 +1,27 @@
+'use client';
+
 import { useState, useEffect, useCallback } from 'react';
 import { signOut } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
-import { auth } from '../config/firebase';
-import { useAuth } from '../contexts/AuthContext';
-import type { Card } from '../types';
-import Button from '../components/Button';
-import DeckCard from '../components/deck/DeckCard';
-import Modal from '../components/Modal';
-import Input from '../components/Input';
-import Textarea from '../components/common/Textarea';
-import { createDeck } from '../services/deckService';
-import { subscribeToCardsByDecks } from '../services/cardService';
-import { useToast } from '../contexts/ToastContext';
-import { processError } from '../utils/errorHandler';
-import { useDecks } from '../hooks/useDecks';
-import { useForm } from '../hooks/useForm';
-import * as validators from '../utils/validators';
+import { useRouter } from 'next/navigation';
+import { auth } from '../../src/config/firebase';
+import { useAuth } from '../../src/contexts/AuthContext';
+import type { Card } from '../../src/types';
+import Button from '../../src/components/Button';
+import DeckCard from '../../src/components/deck/DeckCard';
+import Modal from '../../src/components/Modal';
+import Input from '../../src/components/Input';
+import Textarea from '../../src/components/common/Textarea';
+import { createDeck } from '../../src/services/deckService';
+import { subscribeToCardsByDecks } from '../../src/services/cardService';
+import { useToast } from '../../src/contexts/ToastContext';
+import { processError } from '../../src/utils/errorHandler';
+import { useDecks } from '../../src/hooks/useDecks';
+import { useForm } from '../../src/hooks/useForm';
+import * as validators from '../../src/utils/validators';
 
 export default function Home() {
-  const navigate = useNavigate();
-  const { currentUser, userProfile } = useAuth();
+  const router = useRouter();
+  const { currentUser, userProfile, loading: authLoading } = useAuth();
   const { showToast } = useToast();
   const { decks } = useDecks(currentUser?.uid);
   const [cards, setCards] = useState<Card[]>([]);
@@ -32,6 +34,13 @@ export default function Home() {
       name: (value) => validators.required(value, '덱 이름'),
     }
   );
+
+  // 인증 확인
+  useEffect(() => {
+    if (!authLoading && !currentUser) {
+      router.push('/login');
+    }
+  }, [currentUser, authLoading, router]);
 
   // Firestore에서 모든 카드 실시간 구독 (덱별 카운트 계산용)
   useEffect(() => {
@@ -88,17 +97,33 @@ export default function Home() {
   const handleLogout = useCallback(async () => {
     try {
       await signOut(auth);
-      navigate('/login');
+      router.push('/login');
     } catch (error) {
       const errorMessage = processError(error, 'Logout');
       showToast(errorMessage, 'error');
     }
-  }, [navigate, showToast]);
+  }, [router, showToast]);
 
   // 덱 클릭 핸들러 (useCallback으로 메모이제이션)
   const handleDeckClick = useCallback((deckId: string) => {
-    navigate(`/deck/${deckId}`);
-  }, [navigate]);
+    router.push(`/deck/${deckId}`);
+  }, [router]);
+
+  // 로딩 중
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-black border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentUser) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-white">

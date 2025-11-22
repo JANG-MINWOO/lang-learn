@@ -59,13 +59,13 @@ export function handleFirebaseError(error: any): string {
  * 에러를 로그에 기록 (개발 환경에서만)
  */
 export function logError(error: any, context?: string) {
-  if (import.meta.env.DEV) {
+  if (process.env.NODE_ENV === 'development') {
     console.error(`[Error${context ? ` - ${context}` : ''}]:`, error);
   }
 
   // 프로덕션 환경에서는 에러 추적 서비스로 전송
   // 예: Sentry, LogRocket 등
-  if (import.meta.env.PROD) {
+  if (process.env.NODE_ENV === 'production') {
     // TODO: Send to error tracking service
   }
 }
