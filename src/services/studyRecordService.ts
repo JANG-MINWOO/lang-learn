@@ -1,6 +1,5 @@
 import {
   collection,
-  addDoc,
   query,
   where,
   orderBy,

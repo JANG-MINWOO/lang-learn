@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { FaBook, FaBrain, FaChartLine, FaUsers, FaRocket, FaHeart, FaClock } from 'react-icons/fa';
@@ -9,6 +10,7 @@ import { useAuth } from '../src/contexts/AuthContext';
 
 export default function LandingPage() {
   const { currentUser } = useAuth();
+  const [flippedCards, setFlippedCards] = useState<boolean[]>([false, false, false, false]);
 
   const features = [
     {
@@ -39,6 +41,29 @@ export default function LandingPage() {
     { icon: FaHeart, value: '98%', label: '만족도' },
     { icon: FaClock, value: '50%', label: '시간 절약' },
   ];
+
+  // 예시 카드 데이터 (다국어)
+  const exampleCards = [
+    { front: '안녕하세요', back: 'Hello', frontLang: '한국어', backLang: 'English' },
+    { front: 'こんにちは', back: 'Olá', frontLang: '日本語', backLang: 'Português' },
+    { front: 'Hello', back: '你好', frontLang: 'English', backLang: '中文' },
+    { front: 'Bonjour', back: '안녕하세요', frontLang: 'Français', backLang: '한국어' },
+  ];
+
+  // 자동 카드 뒤집기 애니메이션
+  useEffect(() => {
+    const intervals = exampleCards.map((_, index) => {
+      return setInterval(() => {
+        setFlippedCards((prev) => {
+          const newFlipped = [...prev];
+          newFlipped[index] = !newFlipped[index];
+          return newFlipped;
+        });
+      }, 3000 + index * 500); // 각 카드마다 0.5초 차이
+    });
+
+    return () => intervals.forEach(clearInterval);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary-50 via-white to-secondary-50">
@@ -95,7 +120,7 @@ export default function LandingPage() {
             </motion.div>
           </motion.div>
 
-          {/* Hero Image/Animation */}
+          {/* Hero Image/Animation - Flipping Cards */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
@@ -105,16 +130,49 @@ export default function LandingPage() {
             <div className="relative w-full max-w-4xl mx-auto">
               <div className="bg-gradient-to-br from-primary-100 to-secondary-100 rounded-3xl p-8 shadow-2xl">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {[1, 2, 3, 4].map((i) => (
+                  {exampleCards.map((card, i) => (
                     <motion.div
                       key={i}
                       animate={{ y: [0, -10, 0] }}
                       transition={{ duration: 2, delay: i * 0.2, repeat: Infinity }}
-                      className="bg-white p-6 rounded-2xl shadow-lg"
+                      className="relative h-40 perspective-1000"
+                      style={{ perspective: '1000px' }}
                     >
-                      <div className="w-12 h-12 bg-gradient-to-br from-primary-400 to-secondary-400 rounded-xl mb-3" />
-                      <div className="h-3 bg-gray-200 rounded mb-2" />
-                      <div className="h-2 bg-gray-100 rounded w-2/3" />
+                      <motion.div
+                        className="relative w-full h-full"
+                        animate={{ rotateY: flippedCards[i] ? 180 : 0 }}
+                        transition={{ duration: 0.6, ease: 'easeInOut' }}
+                        style={{ transformStyle: 'preserve-3d' }}
+                      >
+                        {/* Front Side */}
+                        <div
+                          className="absolute inset-0 bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center justify-center"
+                          style={{
+                            backfaceVisibility: 'hidden',
+                            WebkitBackfaceVisibility: 'hidden',
+                          }}
+                        >
+                          <div className="text-xs text-gray-500 mb-2">{card.frontLang}</div>
+                          <div className="text-2xl font-bold text-gray-900 text-center">
+                            {card.front}
+                          </div>
+                        </div>
+
+                        {/* Back Side */}
+                        <div
+                          className="absolute inset-0 bg-gradient-to-br from-primary-400 to-secondary-400 rounded-2xl shadow-lg p-6 flex flex-col items-center justify-center"
+                          style={{
+                            backfaceVisibility: 'hidden',
+                            WebkitBackfaceVisibility: 'hidden',
+                            transform: 'rotateY(180deg)',
+                          }}
+                        >
+                          <div className="text-xs text-primary-100 mb-2">{card.backLang}</div>
+                          <div className="text-2xl font-bold text-white text-center">
+                            {card.back}
+                          </div>
+                        </div>
+                      </motion.div>
                     </motion.div>
                   ))}
                 </div>
