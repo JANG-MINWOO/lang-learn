@@ -8,7 +8,7 @@ import {
   getMonthlyStudyRecords,
   calculateStudyStats,
 } from '../../services/studyRecordService';
-import { LoadingSpinner } from './LoadingSpinner';
+import LoadingSpinner from './LoadingSpinner';
 
 interface StudyCalendarProps {
   userId: string;
