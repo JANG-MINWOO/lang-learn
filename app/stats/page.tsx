@@ -28,7 +28,7 @@ export default function StatsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 pt-16">
       <Container className="py-8">
         <motion.div variants={fadeIn} initial="hidden" animate="visible">
           {/* 헤더 */}

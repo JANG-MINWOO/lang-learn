@@ -13,6 +13,7 @@ import { processError } from '../../utils/errorHandler';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const { currentUser, userProfile } = useAuth();
   const { showToast } = useToast();
   const router = useRouter();
@@ -37,6 +38,7 @@ export default function Header() {
   const navItems = [
     { label: '소개', href: '/#about' },
     { label: '학습하기', href: currentUser ? '/dashboard' : '/login' },
+    { label: '학습통계', href: '/stats', authRequired: true },
     { label: '커뮤니티', href: '/community' },
   ];
 
@@ -56,65 +58,67 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            {navItems.map((item) => (
-              <Link
-                key={item.label}
-                href={item.href}
-                className="text-gray-700 hover:text-primary-600 font-medium transition-colors relative group"
-              >
-                {item.label}
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-500 group-hover:w-full transition-all duration-300" />
-              </Link>
-            ))}
+            {navItems.map((item) => {
+              // Skip authRequired items if user is not logged in
+              if (item.authRequired && !currentUser) return null;
 
-            {/* Auth Buttons */}
-            {currentUser ? (
-              <div className="flex items-center gap-4">
-                {/* User Info */}
-                {userProfile && (
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <FaUser className="text-primary-500" />
-                    <span className="font-medium">{userProfile.nickname}님</span>
-                    {userProfile.provider === 'google' && (
-                      <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
-                        Google
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                {/* Dashboard Button (only show if not on dashboard) */}
-                {pathname !== '/dashboard' && (
-                  <Link
-                    href="/dashboard"
-                    className="px-5 py-2 text-gray-700 hover:text-primary-600 font-medium transition-colors flex items-center gap-2"
-                  >
-                    <FaHome />
-                    <span>대시보드</span>
-                  </Link>
-                )}
-
-                {/* Stats Button */}
+              return (
                 <Link
-                  href="/stats"
-                  className={`px-5 py-2 font-medium transition-colors flex items-center gap-2 ${
-                    pathname === '/stats'
+                  key={item.label}
+                  href={item.href}
+                  className={`font-medium transition-colors relative group ${
+                    pathname === item.href
                       ? 'text-primary-600'
                       : 'text-gray-700 hover:text-primary-600'
                   }`}
                 >
-                  <FaChartLine />
-                  <span>학습 통계</span>
+                  {item.label}
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-500 group-hover:w-full transition-all duration-300" />
                 </Link>
+              );
+            })}
 
-                {/* Logout Button */}
+            {/* Auth Buttons */}
+            {currentUser ? (
+              <div className="relative">
+                {/* Profile Button with Dropdown */}
                 <button
-                  onClick={handleLogout}
-                  className="px-5 py-2 text-gray-700 hover:text-red-600 font-medium transition-colors flex items-center gap-2"
+                  onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                  className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-primary-600 font-medium transition-colors rounded-lg hover:bg-primary-50"
                 >
-                  <FaSignOutAlt />
-                  <span>로그아웃</span>
+                  <FaUser className="text-primary-500" />
+                  <span>{userProfile?.nickname || '내 프로필'}</span>
+                  {userProfile?.provider === 'google' && (
+                    <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
+                      Google
+                    </span>
+                  )}
                 </button>
+
+                {/* Dropdown Menu */}
+                <AnimatePresence>
+                  {isProfileDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-primary-100 overflow-hidden"
+                    >
+                      <div className="py-2">
+                        <button
+                          onClick={() => {
+                            setIsProfileDropdownOpen(false);
+                            handleLogout();
+                          }}
+                          className="w-full px-4 py-2 text-left text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+                        >
+                          <FaSignOutAlt />
+                          <span>로그아웃</span>
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             ) : (
               <div className="flex items-center gap-3">
@@ -154,16 +158,25 @@ export default function Header() {
             className="md:hidden bg-white border-b border-primary-100 overflow-hidden"
           >
             <div className="px-4 py-4 space-y-3">
-              {navItems.map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  onClick={() => setIsMenuOpen(false)}
-                  className="block px-4 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-lg font-medium transition-colors"
-                >
-                  {item.label}
-                </Link>
-              ))}
+              {navItems.map((item) => {
+                // Skip authRequired items if user is not logged in
+                if (item.authRequired && !currentUser) return null;
+
+                return (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    onClick={() => setIsMenuOpen(false)}
+                    className={`block px-4 py-3 rounded-lg font-medium transition-colors ${
+                      pathname === item.href
+                        ? 'bg-primary-100 text-primary-700'
+                        : 'text-gray-700 hover:bg-primary-50 hover:text-primary-600'
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
 
               <div className="pt-3 border-t border-primary-100 space-y-2">
                 {currentUser ? (
@@ -182,32 +195,6 @@ export default function Header() {
                         </div>
                       </div>
                     )}
-
-                    {/* Dashboard Link */}
-                    {pathname !== '/dashboard' && (
-                      <Link
-                        href="/dashboard"
-                        onClick={() => setIsMenuOpen(false)}
-                        className="block px-4 py-3 bg-gradient-to-r from-primary-500 to-secondary-500 text-white text-center rounded-lg font-medium flex items-center justify-center gap-2"
-                      >
-                        <FaHome />
-                        <span>대시보드</span>
-                      </Link>
-                    )}
-
-                    {/* Stats Link */}
-                    <Link
-                      href="/stats"
-                      onClick={() => setIsMenuOpen(false)}
-                      className={`block px-4 py-3 rounded-lg font-medium flex items-center justify-center gap-2 ${
-                        pathname === '/stats'
-                          ? 'bg-primary-100 text-primary-700'
-                          : 'text-gray-700 hover:bg-primary-50 hover:text-primary-600'
-                      } transition-colors`}
-                    >
-                      <FaChartLine />
-                      <span>학습 통계</span>
-                    </Link>
 
                     {/* Logout Button */}
                     <button
