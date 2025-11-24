@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaBars, FaTimes, FaBook, FaSignOutAlt, FaUser, FaHome, FaChartLine } from 'react-icons/fa';
+import { FaBars, FaTimes, FaBook, FaSignOutAlt, FaUser } from 'react-icons/fa';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../config/firebase';
 import { useAuth } from '../../contexts/AuthContext';
