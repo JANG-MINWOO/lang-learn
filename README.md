@@ -10,19 +10,20 @@ Speak + Anki 스타일의 간격 반복 학습 기반 언어 학습 웹 애플�
 
 ### Frontend
 - **React 19** + **TypeScript** - 타입 안전성과 최신 React 기능 활용
-- **Vite 7** - 빠른 개발 서버 및 번들링
-- **TailwindCSS 3** - 모던한 블랙&화이트 UI 디자인
-- **React Router 7** - SPA 라우팅
+- **Next.js 16** (App Router) - SSR/CSR 하이브리드, 최적화된 번들링
+- **TailwindCSS 3** - 파스텔 옐로우 브랜드 컬러 시스템
+- **Framer Motion** - 부드러운 애니메이션 및 인터랙션
+- **Zustand** - 경량 클라이언트 상태 관리
 
 ### Backend
 - **Firebase**
-  - Authentication - 이메일/비밀번호 인증
-  - Firestore - NoSQL 데이터베이스
+  - Authentication - 이메일/비밀번호, 구글 로그인
+  - Firestore - NoSQL 데이터베이스 (실시간 동기화)
   - Analytics - 사용자 분석 (선택적)
 
 ### 개발 환경
 - **포트**: 4000번 (개발 서버)
-- **배포**: Vercel / Firebase Hosting
+- **배포**: Vercel (Next.js 최적화)
 
 ## ✨ 주요 기능
 
@@ -75,55 +76,67 @@ SuperMemo SM-2 알고리즘 기반 구현:
 
 ```
 language-learning-app/
+├── app/                         # Next.js App Router
+│   ├── page.tsx                 # 랜딩 페이지
+│   ├── layout.tsx               # 루트 레이아웃
+│   ├── providers.tsx            # Context Providers
+│   ├── globals.css              # 전역 스타일
+│   ├── dashboard/               # 대시보드 페이지
+│   ├── deck/[deckId]/           # 덱 상세 페이지
+│   ├── study/[deckId]/          # 학습 페이지
+│   ├── login/                   # 로그인 페이지
+│   ├── signup/                  # 회원가입 페이지
+│   └── community/               # 커뮤니티 페이지
 ├── src/
 │   ├── components/              # 재사용 가능한 UI 컴포넌트
-│   │   ├── common/              # 공통 컴포넌트
-│   │   │   ├── LoadingSpinner.tsx  # 로딩 스피너
-│   │   │   └── Textarea.tsx        # 텍스트 영역
-│   │   ├── deck/                # 덱 관련 컴포넌트
-│   │   │   └── DeckCard.tsx        # 덱 카드 (React.memo 최적화)
-│   │   ├── study/               # 학습 관련 컴포넌트
-│   │   │   └── StudyCard.tsx       # 학습 카드
-│   │   ├── Button.tsx           # 버튼 컴포넌트
-│   │   ├── Input.tsx            # 입력 필드 컴포넌트
-│   │   ├── Modal.tsx            # 모달 컴포넌트
+│   │   ├── ui/                  # UI 컴포넌트 라이브러리
+│   │   │   ├── Button.tsx       # 버튼 (variants 지원)
+│   │   │   ├── Input.tsx        # 입력 필드
+│   │   │   ├── Modal.tsx        # 모달
+│   │   │   ├── Card.tsx         # 카드 레이아웃
+│   │   │   ├── DeckCard.tsx     # 덱 카드 (React.memo)
+│   │   │   ├── StudyCard.tsx    # 학습 카드
+│   │   │   ├── LoadingSpinner.tsx # 로딩 스피너
+│   │   │   ├── Textarea.tsx     # 텍스트 영역
+│   │   │   ├── Badge.tsx        # 배지
+│   │   │   ├── Container.tsx    # 컨테이너
+│   │   │   ├── EmptyState.tsx   # 빈 상태
+│   │   │   └── index.ts         # 배럴 export
+│   │   ├── layout/              # 레이아웃 컴포넌트
+│   │   │   └── Header.tsx       # 헤더/네비게이션
 │   │   └── ProtectedRoute.tsx   # 인증 보호 라우트
 │   ├── config/
 │   │   └── firebase.ts          # Firebase 초기화 및 설정
-│   ├── contexts/                # React Context
+│   ├── contexts/                # React Context API
 │   │   ├── AuthContext.tsx      # 인증 Context
 │   │   └── ToastContext.tsx     # Toast 알림 Context
 │   ├── hooks/                   # 커스텀 훅
-│   │   ├── useCards.ts          # 카드 데이터 훅
-│   │   ├── useDecks.ts          # 덱 데이터 훅
-│   │   ├── useForm.ts           # 폼 상태 관리 훅
-│   │   ├── useKeyboardShortcuts.ts  # 키보드 단축키 훅
-│   │   └── useSpacedRepetition.ts   # 간격 반복 알고리즘 훅
-│   ├── pages/                   # 페이지 컴포넌트
-│   │   ├── DeckDetail.tsx       # 덱 상세 (카드 목록)
-│   │   ├── Home.tsx             # 홈 (덱 목록)
-│   │   ├── Login.tsx            # 로그인 페이지
-│   │   ├── SignUp.tsx           # 회원가입 페이지
-│   │   └── Study.tsx            # 학습 페이지
-│   ├── services/                # API 서비스 레이어
-│   │   ├── cardService.ts       # 카드 CRUD 및 구독
-│   │   ├── deckService.ts       # 덱 CRUD 및 구독
+│   │   ├── useCards.ts          # 카드 데이터 관리
+│   │   ├── useDecks.ts          # 덱 데이터 관리
+│   │   ├── useForm.ts           # 폼 상태 관리
+│   │   ├── useSpacedRepetition.ts # SM-2 알고리즘
+│   │   ├── useKeyboardShortcuts.ts # 키보드 단축키
+│   │   └── useSpeech.ts         # TTS/음성 인식
+│   ├── services/                # 서비스 레이어 (Firebase 추상화)
+│   │   ├── cardService.ts       # 카드 CRUD + 실시간 구독
+│   │   ├── deckService.ts       # 덱 CRUD + 실시간 구독
 │   │   └── userService.ts       # 사용자 프로필 관리
-│   ├── types/                   # TypeScript 타입 정의
-│   │   ├── firebase.ts          # Firebase 타입 변환
+│   ├── types/                   # TypeScript 타입 시스템
+│   │   ├── index.ts             # 도메인 타입 (User, Deck, Card)
 │   │   ├── guards.ts            # 런타임 타입 가드
-│   │   └── index.ts             # 공통 타입 정의
+│   │   └── firebase.ts          # Firebase 타입 변환 유틸
 │   ├── utils/                   # 유틸리티 함수
 │   │   ├── constants.ts         # 상수 정의
-│   │   ├── errorHandler.ts      # 에러 처리 유틸
-│   │   └── validators.ts        # 폼 검증 함수
-│   ├── App.tsx                  # 메인 앱 + 라우팅
-│   ├── main.tsx                 # 진입점
-│   └── index.css                # 전역 스타일
+│   │   ├── validators.ts        # 폼 검증
+│   │   └── errorHandler.ts      # 에러 처리
+│   └── lib/
+│       └── animations.ts        # Framer Motion 애니메이션
+├── public/                      # 정적 파일
 ├── .env.example                 # 환경변수 예시
-├── IMPROVEMENTS.md              # 코드 개선 분석 및 로드맵
-├── PROJECT_SPEC.md              # 프로젝트 기획서
-└── README.md                    # 프로젝트 문서
+├── next.config.ts               # Next.js 설정
+├── tailwind.config.js           # Tailwind 설정
+├── tsconfig.json                # TypeScript 설정
+└── vercel.json                  # Vercel 배포 설정
 ```
 
 ## 🚀 시작하기
@@ -169,16 +182,16 @@ npm install
 cp .env.example .env
 ```
 
-5. `.env` 파일에 Firebase 구성 정보 입력:
+5. `.env.local` 파일에 Firebase 구성 정보 입력:
 
 ```env
-VITE_FIREBASE_API_KEY=your_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your_project_id
-VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-VITE_FIREBASE_APP_ID=your_app_id
-VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
+NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_measurement_id
 ```
 
 ### 4. Google Cloud TTS 설정 (선택 - 고품질 음성)
@@ -280,8 +293,8 @@ npm run dev
 # 프로덕션 빌드
 npm run build
 
-# 빌드 미리보기
-npm run preview
+# 프로덕션 서버 실행
+npm run start
 
 # 린트 실행
 npm run lint
@@ -291,20 +304,20 @@ npm run lint
 
 ### Vercel (추천)
 
+Next.js 프로젝트로 최적화된 배포 환경을 제공합니다.
+
 ```bash
+# Vercel CLI 설치
 npm install -g vercel
+
+# 배포
 vercel
+
+# 프로덕션 배포
+vercel --prod
 ```
 
-### Firebase Hosting
-
-```bash
-npm install -g firebase-tools
-firebase login
-firebase init hosting
-npm run build
-firebase deploy
-```
+또는 [Vercel Dashboard](https://vercel.com)에서 GitHub 저장소를 연동하여 자동 배포 설정이 가능합니다.
 
 ## ✅ 최근 주요 개선 사항 (2025.10)
 
