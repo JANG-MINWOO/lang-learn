@@ -73,6 +73,7 @@ export const COLLECTIONS = {
   DECKS: 'decks',
   CARDS: 'cards',
   SESSIONS: 'sessions',
+  STUDY_RECORDS: 'studyRecords',
 } as const;
 
 // 난이도 버튼 레이블

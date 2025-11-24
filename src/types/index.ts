@@ -51,3 +51,33 @@ export interface StudySession {
   duration: number; // 초 단위
   completedAt: Date;
 }
+
+// 학습 기록 타입
+export interface StudyRecord {
+  id: string;
+  userId: string;
+  deckId: string;
+  deckName?: string; // 덱 이름 (선택적)
+  studyDate: Date; // 학습한 날짜 (시간 제외)
+  cardsStudied: number; // 학습한 카드 수
+  duration: number; // 학습 시간 (초)
+  stats: {
+    again: number;
+    hard: number;
+    good: number;
+    easy: number;
+  };
+  createdAt: Date;
+}
+
+// 학습 통계 (집계용)
+export interface StudyStats {
+  totalDays: number; // 총 학습 일수
+  currentStreak: number; // 현재 연속 학습 일수
+  longestStreak: number; // 최장 연속 학습 일수
+  totalCards: number; // 총 학습 카드 수
+  totalDuration: number; // 총 학습 시간 (초)
+  averageCardsPerDay: number; // 하루 평균 학습 카드 수
+  thisMonthDays: number; // 이번 달 학습 일수
+  thisMonthCards: number; // 이번 달 학습 카드 수
+}

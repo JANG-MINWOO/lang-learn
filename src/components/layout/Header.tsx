@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaBars, FaTimes, FaBook, FaSignOutAlt, FaUser, FaHome } from 'react-icons/fa';
+import { FaBars, FaTimes, FaBook, FaSignOutAlt, FaUser, FaHome, FaChartLine } from 'react-icons/fa';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../config/firebase';
 import { useAuth } from '../../contexts/AuthContext';
@@ -94,6 +94,19 @@ export default function Header() {
                   </Link>
                 )}
 
+                {/* Stats Button */}
+                <Link
+                  href="/stats"
+                  className={`px-5 py-2 font-medium transition-colors flex items-center gap-2 ${
+                    pathname === '/stats'
+                      ? 'text-primary-600'
+                      : 'text-gray-700 hover:text-primary-600'
+                  }`}
+                >
+                  <FaChartLine />
+                  <span>학습 통계</span>
+                </Link>
+
                 {/* Logout Button */}
                 <button
                   onClick={handleLogout}
@@ -181,6 +194,20 @@ export default function Header() {
                         <span>대시보드</span>
                       </Link>
                     )}
+
+                    {/* Stats Link */}
+                    <Link
+                      href="/stats"
+                      onClick={() => setIsMenuOpen(false)}
+                      className={`block px-4 py-3 rounded-lg font-medium flex items-center justify-center gap-2 ${
+                        pathname === '/stats'
+                          ? 'bg-primary-100 text-primary-700'
+                          : 'text-gray-700 hover:bg-primary-50 hover:text-primary-600'
+                      } transition-colors`}
+                    >
+                      <FaChartLine />
+                      <span>학습 통계</span>
+                    </Link>
 
                     {/* Logout Button */}
                     <button

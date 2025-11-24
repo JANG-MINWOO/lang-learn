@@ -18,3 +18,4 @@ export { default as LoadingSpinner } from './LoadingSpinner';
 export { default as Container } from './Container';
 export { default as EmptyState } from './EmptyState';
 export { default as StudyCard } from './StudyCard';
+export { StudyCalendar } from './StudyCalendar';

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -12,7 +12,7 @@ import {
   FaMeh,
   FaFrown,
 } from 'react-icons/fa';
-import type { Card } from '../../../src/types';
+import type { Card, Deck } from '../../../src/types';
 import { Difficulty } from '../../../src/types';
 import {
   Button,
@@ -23,7 +23,10 @@ import {
 } from '../../../src/components/ui';
 import { STUDY_CONFIG, KEYBOARD_SHORTCUTS } from '../../../src/utils/constants';
 import { getStudyCards, updateCard } from '../../../src/services/cardService';
+import { getDeck } from '../../../src/services/deckService';
+import { saveStudyRecord } from '../../../src/services/studyRecordService';
 import { useToast } from '../../../src/contexts/ToastContext';
+import { useAuth } from '../../../src/contexts/AuthContext';
 import { processError } from '../../../src/utils/errorHandler';
 import { useSpacedRepetition } from '../../../src/hooks/useSpacedRepetition';
 import { useKeyboardShortcuts } from '../../../src/hooks/useKeyboardShortcuts';
@@ -34,8 +37,10 @@ export default function Study() {
   const deckId = params?.deckId as string;
   const router = useRouter();
   const { showToast } = useToast();
+  const { currentUser } = useAuth();
   const { calculateNextReview } = useSpacedRepetition();
   const [cards, setCards] = useState<Card[]>([]);
+  const [deck, setDeck] = useState<Deck | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isReversed, setIsReversed] = useState(false);
@@ -47,15 +52,20 @@ export default function Study() {
     good: 0,
     easy: 0,
   });
+  const studyStartTime = useRef<number>(Date.now());
 
-  // 카드 가져오기
+  // 카드 및 덱 정보 가져오기
   useEffect(() => {
     if (!deckId) return;
 
-    const fetchCards = async () => {
+    const fetchData = async () => {
       try {
-        const studyCards = await getStudyCards(deckId, STUDY_CONFIG.MAX_CARDS_PER_SESSION);
+        const [studyCards, deckData] = await Promise.all([
+          getStudyCards(deckId, STUDY_CONFIG.MAX_CARDS_PER_SESSION),
+          getDeck(deckId),
+        ]);
         setCards(studyCards);
+        setDeck(deckData);
         setLoading(false);
       } catch (error) {
         const errorMessage = processError(error, 'FetchStudyCards');
@@ -64,7 +74,7 @@ export default function Study() {
       }
     };
 
-    fetchCards();
+    fetchData();
   }, [deckId, showToast]);
 
   const handleAnswer = async (difficulty: Difficulty) => {
@@ -97,8 +107,28 @@ export default function Study() {
     setIsFlipped(false);
     if (currentIndex + 1 >= cards.length) {
       setIsComplete(true);
+      // 학습 완료 시 기록 저장
+      await handleSaveStudyRecord();
     } else {
       setCurrentIndex(currentIndex + 1);
+    }
+  };
+
+  // 학습 기록 저장
+  const handleSaveStudyRecord = async () => {
+    if (!currentUser || !deck) return;
+
+    const duration = Math.floor((Date.now() - studyStartTime.current) / 1000); // 초 단위
+
+    try {
+      await saveStudyRecord(currentUser.uid, deckId, deck.name, {
+        cardsStudied: cards.length,
+        duration,
+        stats,
+      });
+    } catch (error) {
+      console.error('Failed to save study record:', error);
+      // 에러가 나도 사용자 경험을 방해하지 않도록 조용히 처리
     }
   };
 
