@@ -57,7 +57,7 @@ export default function LandingPage() {
 
     const flipSequence = () => {
       // 현재 카드 뒤집기
-      setFlippedCards((prev) => {
+      setFlippedCards(() => {
         const newFlipped = [false, false, false, false];
         if (isFlipped) {
           // 이미 뒤집힌 상태면 다 원래대로
