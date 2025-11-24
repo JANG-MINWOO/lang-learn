@@ -50,20 +50,46 @@ export default function LandingPage() {
     { front: 'Bonjour', back: '안녕하세요', frontLang: 'Français', backLang: '한국어' },
   ];
 
-  // 자동 카드 뒤집기 애니메이션
+  // 순차적 카드 뒤집기 애니메이션
   useEffect(() => {
-    const intervals = exampleCards.map((_, index) => {
-      return setInterval(() => {
-        setFlippedCards((prev) => {
-          const newFlipped = [...prev];
-          newFlipped[index] = !newFlipped[index];
-          return newFlipped;
-        });
-      }, 3000 + index * 500); // 각 카드마다 0.5초 차이
-    });
+    let currentCardIndex = 0;
+    let isFlipped = false;
 
-    return () => intervals.forEach(clearInterval);
-  }, []);
+    const flipSequence = () => {
+      // 현재 카드 뒤집기
+      setFlippedCards((prev) => {
+        const newFlipped = [false, false, false, false];
+        if (isFlipped) {
+          // 이미 뒤집힌 상태면 다 원래대로
+          newFlipped[currentCardIndex] = false;
+        } else {
+          // 아니면 현재 카드만 뒤집기
+          newFlipped[currentCardIndex] = true;
+        }
+        return newFlipped;
+      });
+
+      if (isFlipped) {
+        // 뒤집혔다가 다시 돌아온 상태 -> 다음 카드로
+        currentCardIndex = (currentCardIndex + 1) % exampleCards.length;
+        isFlipped = false;
+      } else {
+        // 뒤집은 상태
+        isFlipped = true;
+      }
+    };
+
+    // 초기 지연 후 시작
+    const initialTimeout = setTimeout(() => {
+      flipSequence();
+      // 이후 1.5초마다 반복 (뒤집기 0.6초 + 대기 0.9초)
+      const interval = setInterval(flipSequence, 1500);
+
+      return () => clearInterval(interval);
+    }, 1000);
+
+    return () => clearTimeout(initialTimeout);
+  }, [exampleCards.length]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary-50 via-white to-secondary-50">
